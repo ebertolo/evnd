@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %} {{ super() }} Home {% endblock%}
+{% block head %}
+    {{ super() }}
+    <style>
+    </style>
+{% endblock%}
+
+{% block page_content %}
+<h1>{{name}}</h1>
+<ul>
+    {% for item in items %}
+        <li>{{ item }}</li>
+    {% endfor %}
+</ul>
+{% endblock%}
