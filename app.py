@@ -19,29 +19,6 @@ db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 
-# Models
-class CustomerType(db.Model):
-    __tablename__ = "customer_types"
-    id = db.Column(db.Integer, primary_key=True)
-    description_short = db.Column(db.String(10), unique=True)
-    desciption_long = db.Column(db.String(50))
-    customers = db.relationship("Customer", backref="customertype", lazy='dynamic')
-
-    def __repr__(self):
-        return "<CustomerType %r>" % self.name
-
-
-class Customer(db.Model):
-    __tablename__ = "customers"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, index=True)
-    contact_name =  db.Column(db.String(50))
-    contact_phone =  db.Column(db.String(15))
-    tax_id = db.Column(db.String(20), unique=True)
-    customer_type_id = db.Column(db.Integer, db.ForeignKey("customer_types.id"))
-
-    def __repr__(self):
-        return "<Customer %r>" % self.username
 
 
 # Forms

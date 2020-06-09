@@ -6,7 +6,7 @@
 {% block page_content %}
 <div class="page-header">
     <h2>{{page}}</h2>
-    <h3>Ola, {% if name %}{{ name }}{% else %} Usuario{% endif %}!</h3>
+    <h3>Ola, {% if name %}{{ name|capitalize }}{% else %} Usuario{% endif %}!</h3>
 </div>
 {{ wtf.quick_form(form) }}
 {% endblock %}
