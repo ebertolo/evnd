@@ -1,7 +1,7 @@
 import os
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
-from flask import Flask, render_template, session, redirect, url_for, flash
+from flask import Flask, render_template, session, request, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -19,8 +19,36 @@ db = SQLAlchemy(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 
+# Models
+class CustomerType(db.Model):
+    __tablename__ = "customer_types"
+    id = db.Column(db.Integer, primary_key=True)
+    description_short = db.Column(db.String(10), unique=True)
+    desciption_long = db.Column(db.String(50))
+    customers = db.relationship("Customer", backref="customertype", lazy='dynamic')
+
+    def __repr__(self):
+        return "<CustomerType %r>" % self.name
 
 
+class Customer(db.Model):
+    __tablename__ = "customers"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, index=True)
+    contact_name =  db.Column(db.String(50))
+    contact_phone =  db.Column(db.String(15))
+    tax_id = db.Column(db.String(20), unique=True)
+    customer_type_id = db.Column(db.Integer, db.ForeignKey("customer_types.id"))
+
+    def __init__(self, name, contact_name, contact_phone):
+        self.name = name
+        self.contact_name = contact_name
+        self.contact_phone = contact_phone
+
+    def __repr__(self):
+        return "<Customer %r>" % self.username
+
+ 
 # Forms
 class CustomerForm(FlaskForm):
     name = StringField("Digite seu nome:", validators=[DataRequired()])
@@ -36,9 +64,52 @@ class CustomerTypeForm(FlaskForm):
 
 
 # Rotinas Principais
+# Index
 @app.route("/")
 def index():
-    return render_template("pages/index.html", page="Home")
+    all_data = Customer.query.all()
+    return render_template("pages/index.html", page="Home", employees = all_data)
+
+#Insert
+@app.route('/insert', methods = ['POST'])
+def insert():
+
+    if request.method == 'POST':
+        name = request.form['name']
+        contact_name = request.form['contact_name']
+        contact_phone = request.form['contact_phone']
+
+
+        my_data = Customer(name, contact_name, contact_phone)
+        db.session.add(my_data)
+        db.session.commit()
+
+        flash("Cliente cadastro com sucesso")
+        return redirect(url_for('index'))
+
+#Update
+@app.route('/update', methods = ['GET', 'POST'])
+def update():
+
+    if request.method == 'POST':
+        my_data = Customer.query.get(request.form.get('id'))
+        my_data.name = request.form['name']
+        my_data.contact_name = request.form['contact_name']
+        my_data.contact_phone = request.form['contact_phone']
+        db.session.commit()
+
+        flash("Cliente atualizado com sucesso.")
+        return redirect(url_for('index'))
+
+#Delete
+@app.route('/delete/<id>/', methods = ['GET', 'POST'])
+def delete(id):
+    my_data = Customer.query.get(id)
+    db.session.delete(my_data)
+    db.session.commit()
+
+    flash("Employee Deleted Successfully")
+    return redirect(url_for('index'))
 
 @app.route("/product/<name>")
 def product(name):
