@@ -1,126 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %} {{ super() }} {{page}} {% endblock %}
+{% block title %} {{ super() }} {{ page }} {% endblock%}
+{% block head %}
+    {{ super() }}
+    <style>
+    </style>
+{% endblock%}
 
 {% block page_content %}
-<div class="page-header">
-    <h2>{{page}}</h2>
+
+<div class="page-header dark">
+    <h3>{{page}}</h3>
 </div>
 
 <div class="container">
-    <div class="row">
-        <div class="col md-12">
- 
-            <div class="jumbotron p-3">
- 
-                <h2>Manage <b>Clientes</b>  <button type="button"  class="btn btn-success float-right"
-                data-toggle="modal" data-target="#mymodal">Add New Clientes</button>
-                </h2>
- 
-                <table class="table table-hover table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Nome Contato</th>
-                        <th>Nome Telefone</th>
-                        <th>Ação</th>
-                    </tr>
- 
-                   {% for row in employees %}
-                    <tr>
-                        <td>{{row.id}}</td>
-                        <td>{{row.name}}</td>
-                        <td>{{row.contact_name}}</td>
-                        <td>{{row.contact_phone}}</td>
-                        <td>
-                            <a href="/update/{{row.id}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}">Edit</a>
-                            <a href="/delete/{{row.id}}" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure To Delete ?')">Delete</a>
-                        </td>
-                    </tr>
- 
- 
-                <!-- Modal Edit Employee-->
-                <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
-                    <div class="modal-dialog">
-                    
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4 class="modal-title">Update Information</h4>
-                            </div>
-                
-                            <div class="modal-body">
-                        
-                                <form action="{{url_for('update')}}" method="POST">
-                    
-                                    <div class="form-group">
-                                        <label>Nome:</label>
-                                        <input type="hidden"  name="id" value="{{row.id}}">
-                                        <input type="text" class="form-control" name="name" value="{{row.name}}">
-                                    </div>
-                        
-                                    <div class="form-group">
-                                        <label>Nome Contato:</label>
-                                        <input type="text" class="form-control" name="contact_name" value="{{row.contact_name}}">
-                                    </div>
-                        
-                                    <div class="form-group">
-                                        <label>Phone:</label>
-                                        <input type="text" class="form-control" name="contact_phone" value="{{row.contact_phone}}">
-                                    </div>
-                        
-                                    <div class="form-group">
-                                        <button class="btn btn-primary" type="submit">Update</button>
-                                    </div>
-                                </form>
-                            </div>
-                    
-                    
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>    
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                </table>
-            </div>
- 
-            <!-- Modal Add Employee-->
-            <div id="mymodal" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Add Cliente</h4>
-                        </div>
 
-                        <div class="modal-body">
-                            <form action="{{url_for('insert')}}" method="POST">
-                                <div class="form-group">
-                                    <label>Nome:</label>
-                                    <input type="text" class="form-control" name="name" required="1">
-                                </div>
-                
-                                <div class="form-group">
-                                    <label>Nome Contato:</label>
-                                    <input type="text" class="form-control" name="contact_name" required="1">
-                                </div>
-                                <div class="form-group"> 
-                                    <label>Fone de Contato:</label>
-                                    <input type="number" class="form-control" name="contact_phone" required="1">
-                                </div>
-                                <div class="form-group">
-                                    <button class="btn btn-primary" type="submit">Add Employee</button> 
-                                </div>
-                            </form>
-                        </div>
-            
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> 
+    <div class="row">
+        <span> Este é um Projeto de CRM, para gestão de clientes e atividades</span>
+    </div>
+    
 </div>
-{% endblock %}
+{% endblock%}
