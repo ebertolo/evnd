@@ -11,10 +11,11 @@
 
     <div class="row">
         <div class="text-right">
-            <button type="button" class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mymodal"> Novo Produto <i class="fas fa-plus-circle fa-lg"></i></button>
+            <button type="button"  class="btn btn-dark btn-sm" data-toggle="modal" data-toggle="tooltip" title="Cadastrar novo cliente." data-target="#mymodal"> Novo Cliente <i class="fas fa-plus-circle fa-lg"></i></button>
             </br>
             </br>
         </div>
+    
         
         <div class="col md-12">           
             <div class="p-1">
@@ -22,112 +23,153 @@
                     <tr>
                         <th>ID</th>
                         <th>Nome</th>
-                        <th>Link</th>
-                        <th>Categoria Produto(Descricao Curta)</th>
+                        <th>Tipo Cliente</th>
+                        <th>Nome Contato</th>
+                        <th>Telefone Contato</th>
+                        <th>Email Contato</th>
                         <th>Ação</th>
                     </tr>
  
-                    {% for row in products %}
+                   {% for row in customers %}
                     <tr>
                         <td>{{row.id}}</td>
                         <td>{{row.name}}</td>
-                        <td>{{row.html_link}}</td>
-                        <td>{{row.product_group_name_short}}</td>                       
+
+                        {% if row.customer_type_id == 1 %}
+                            <td>Lead/Prospect</td>
+                        {% elif row.customer_type_id == 2 %}
+                            <td>Cliente Ativo</td>
+                        {% elif row.customer_type_id == 3 %}
+                            <td>Cliente VIP</td>
+                        {% else %}
+                            <td> -- </td>
+                        {% endif %}
+                        
+                        <td>{{row.contact_name}}</td>
+                        <td>{{row.contact_phone}}</td>
+                        <td>{{row.contact_email}}</td>
                         <td>
-                            <a href="products/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
-                            <a href="products/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
+                            <a href="customers/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
+                            <a href="customers/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
                         </td>
                     </tr>
  
-                    <!-- Modal Editar produto-->
-                    <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
-                        <div class="modal-dialog">
-                        
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Atualizar Produto</h4>
-                                </div>
+ 
+                <!-- Modal Editar Cliente-->
+                <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
                     
-                                <div class="modal-body">
-                            
-                                    <form action="{{url_for('products_update')}}" method="POST">
-                        
-                                        <div class="form-group">
-                                            <label>Nome:</label>
-                                            <input type="hidden"  name="id" value="{{row.id}}">
-                                            <input type="text" class="form-control" name="name" value="{{row.name}}">
-                                        </div>
-                            
-                                        <div class="form-group">
-                                            <label>Link Produto:</label>
-                                            <input type="text" class="form-control" name="html_link" value="{{row.html_link}}">
-                                        </div>
-                            
-                                        <div class="form-group">
-                                            <label>Categoria Produto(Descricao Curta):</label>
-                                            <input type="text" class="form-control" name="product_group_name_short" value="{{row.product_group_name_short}}">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Categoria Produto(Descricao Longa):</label>
-                                            <input type="text" class="form-control" name="product_group_name_long" value="{{row.product_group_name_long}}">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Descrição Produto:</label>
-                                            <textarea " class="form-control" name="info" rows="3">{{row.info}}</textarea>
-                                        </div>
-                            
-                                        <div class="form-group">
-                                            <button class="btn btn-dark btn-sm" type="submit">Salvar <i class="fas fa-save fa-lg"></i></button>   
-                                        </div>
-                                    </form>
-                                </div>
-                        
-                        
-                                <div class="modal-footer">
-                                    <button type="button" data-toggle="tooltip" data-placement="bottom" title="Fechar janela." class="close" data-dismiss="modal">&times;</button>
-                                </div>    
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Atualizar Cliente</h4>
                             </div>
+                
+                            <div class="modal-body">
+                        
+                                <form action="{{url_for('customers_update')}}" method="POST">
+                    
+                                    <div class="form-group">
+                                        <label>Nome Empresa Cliente:</label>
+                                        <input type="hidden"  name="id" value="{{row.id}}">
+                                        <input type="text" class="form-control" name="name" value="{{row.name}}">
+                                    </div>
+                        
+                                    <div class="form-group">
+                                        <label>CNPJ:</label>
+                                        <input type="text" class="form-control" name="tax_id" value="{{row.tax_id}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Tipo Cliente:</label>
+                                        <select name="customer_type_id">
+
+                                            {% for item in [[1,"Lead/Prospect"], [2, "Cliente Ativo"], [3, "Cliente Vip"]] %}
+                                            
+                                            <option value="{{item[0]}}" {% if item[0] == row.customer_type_id %} selected {% endif %}>{{item[1]}}</option>
+                                            
+                                            {% endfor %}
+                                            
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Nome do Contato:</label>
+                                        <input type="text" class="form-control" name="contact_name" value="{{row.contact_name}}">
+                                    </div>
+                        
+                                    <div class="form-group">
+                                        <label>Telefone do Contato:</label>
+                                        <input type="text" class="form-control" name="contact_phone" value="{{row.contact_phone}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Email do Contato:</label>
+                                        <input type="email" class="form-control" name="contact_email" value="{{row.contact_email}}">
+                                    </div>
+                        
+                                    <div class="form-group">
+                                        <button class="btn btn-dark btn-sm" type="submit">Salvar <i class="fas fa-save fa-lg"></i></button>   
+                                    </div>
+                                </form>
+                            </div>
+                    
+                    
+                            <div class="modal-footer">
+                                <button type="button" data-toggle="tooltip" data-placement="bottom" title="Fechar janela." class="close" data-dismiss="modal">&times;</button>
+                            </div>    
                         </div>
                     </div>
+                </div>
                 {% endfor %}
                 </table>
             </div>
  
-            <!-- Modal Novo produto-->
+            <!-- Modal Novo Cliente-->
             <div id="mymodal" class="modal fade" role="dialog">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="modal-title">Novo Produto</h4>
+                            <h4 class="modal-title">Novo Cliente</h4>
                         </div>
 
                         <div class="modal-body">
-                            <form action="{{url_for('products_insert')}}" method="POST">
+                            <form action="{{url_for('customers_insert')}}" method="POST">
                                 <div class="form-group">
-                                    <label>Nome:</label>
+                                    <label>Nome Empresa Cliente:</label>
                                     <input type="text" class="form-control" name="name" required="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>CNPJ:</label>
+                                    <input type="text" class="form-control" name="tax_id" >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Tipo Cliente:</label>
+                                    <select name="customer_type_id">
+
+                                        {% for item in [[1,"Lead/Prospect"], [2, "Cliente Ativo"], [3, "Cliente Vip"]] %}
+                                        
+                                        <option value="{{item[0]}}">{{item[1]}}</option>
+                                        
+                                        {% endfor %}
+                                        
+                                    </select>
                                 </div>
                 
                                 <div class="form-group">
-                                    <label>Link Produto:</label>
-                                    <input type="text" class="form-control" name="html_link" required="1">
+                                    <label>Nome do Contato:</label>
+                                    <input type="text" class="form-control" name="contact_name" required="1">
                                 </div>
 
                                 <div class="form-group"> 
-                                    <label>Categoria (Descricao Curta):</label>
-                                    <input type="text" class="form-control" name="product_group_name_short" required="1">    
-                                </div>
-                                
-                                <div class="form-group"> 
-                                    <label>Categoria (Descricao Longa):</label>
-                                    <input type="text" class="form-control" name="product_group_name_long">
+                                    <label>Telefone do Contato:</label>
+                                    <input type="text" class="form-control" name="contact_phone" required="1">
                                 </div>
 
                                 <div class="form-group"> 
-                                    <label>Decrição Produto:</label>
-                                    <textarea rows="3" class="form-control" name="info"><textarea>
+                                    <label>Email do Contato:</label>
+                                    <input type="email" class="form-control" name="contact_email">
                                 </div>
 
                                 <div class="form-group">

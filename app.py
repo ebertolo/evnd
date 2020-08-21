@@ -175,8 +175,8 @@ def customers_delete(id):
 ################################# Rotas Produtos #################################
 @app.route("/products")
 def products_index():
-    product_set = Product.query.all()
-    return render_template("pages/products.html", page="Produtos", products = product_set)
+    product_set = Customer.query.all()
+    return render_template("pages/products.html", page="Produtos", customers = product_set)
 
 #Insert
 @app.route('/products/insert', methods = ['POST'])
@@ -202,7 +202,7 @@ def products_insert():
 def products_update():
 
     if request.method == 'POST':
-        my_data = Customer.query.get(request.form.get('id'))
+        my_data = Product.query.get(request.form.get('id'))
         my_data.name = request.form['name']
         my_data.info = request.form['info']
         my_data.html_link = request.form['html_link']
