@@ -4,6 +4,8 @@
 {%- block html %}
   <head>
     {%- block head %}
+    <!-- FontAwesome -->
+    {{ fontawesome_html() }} 
     <title>{% block title %}{{title|default}}{% endblock title %}</title>
 
     {%- block metas %}
@@ -11,8 +13,9 @@
     {%- endblock metas %}
 
     {%- block styles %}
-    <!-- Bootstrap -->
+    <!-- Bootstrap --> 
     <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
+    
     {%- endblock styles %}
     {%- endblock head %}
   </head>
@@ -26,7 +29,6 @@
     {% block scripts %}
     <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
     <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
-    <script src="https://kit.fontawesome.com/0f7f27be07.js" crossorigin="anonymous"></script>
     <script>
       $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();   
