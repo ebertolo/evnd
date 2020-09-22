@@ -15,10 +15,10 @@ app.config["SQLALCHEMY_COMMIT_ON_TEARDOWN"] = True
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
 fa = FontAwesome(app)
+bootstrap = Bootstrap(app)
+moment = Moment(app)
 
 db = SQLAlchemy(app)
 db.create_all()
-bootstrap = Bootstrap(app)
-moment = Moment(app)
 
 from app import views
