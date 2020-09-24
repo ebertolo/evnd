@@ -15,8 +15,10 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
-            </button>
-            <a data-toggle="tooltip" data-placement="bottom" title="Pagina Inicial" class="navbar-brand" href="/">eVND</a>
+            </button> 
+            <a data-toggle="tooltip" data-placement="top" class="navbar-brand" href="/">
+                <img class="img-responsive"  title="Pagina Inicial" style="max-height:50px; margin-top:-15px; margin-left:0px" src="{{ url_for('static', filename='logo_small.png') }}">
+            </a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
@@ -34,7 +36,7 @@
 </div>  
 {% endblock %}
 
-<!-- bloco de conteudo -->
+<!-- Block that is responsible for displaying status and action result messages -->
 {% block content %}
 <div class="container">
     {% for message in get_flashed_messages() %}

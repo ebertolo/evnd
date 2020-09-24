@@ -1,11 +1,17 @@
+import os
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
-from flask import render_template, session, request, redirect, url_for, flash
+from flask import render_template, send_from_directory, session, request, redirect, url_for, flash
 from flask_wtf import FlaskForm
 
 from app import app, db
 from app.models import Customer, Product
 
+# Serve o Favicon da Aplicação para browsers mais antigos
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 # Pagina Incial
 @app.route("/",  methods = ['GET'])
@@ -19,19 +25,18 @@ def menu(name):
     return render_template("pages/home.html", page=name)
 
 
-# Paginas de Erros customizados
+################################# Erros  Personalizados #################################
 @app.errorhandler(404)
 def page_not_found(e):
-    return "<b>pagina nao achada</b>", 404 #render_template("exceptions/404.html"), 404
+    return render_template("exceptions/404.html"), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return "<b>Erro 500</b>", 505 #render_template("exceptions/500.html"), 500
+    return render_template("exceptions/500.html"), 500
 
 
-################################# Rotas Clientes #################################
-#Clientes
+################################# Rotas Cadastro Cliente #################################
 @app.route("/customers")
 def customers_index():
     customer_set = Customer.query.all()
