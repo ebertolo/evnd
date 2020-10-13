@@ -170,3 +170,22 @@ class Authentication(db.Model):
                 
     def __repr__(self):
         return "<Authentication %r>" % self.name
+
+
+class User:
+   email = "email@teste"
+
+   def __init__(self, email):
+      self.email = email
+
+   def get_id(self):
+      return self
+
+   def is_active(self):
+      return True
+
+   def is_anonymous(self):
+      return False
+
+   def is_authenticated(self):
+      return True

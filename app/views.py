@@ -1,42 +1,83 @@
 import os
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
 from flask import render_template, send_from_directory, session, request, redirect, url_for, flash
-from flask_wtf import FlaskForm
+from flask_login import login_required, login_user
+#from wtforms import StringField, SubmitField
+#from wtforms.validators import DataRequired
+#from flask_wtf import FlaskForm
+from app import app, db, forms, login_manager
+from app.models import Customer, Product, User
 
-from app import app, db
-from app.models import Customer, Product
 
-# Serve o Favicon da Aplicação para browsers mais antigos
-@app.route('/favicon.ico')
+""" _________________________________________________________________________________________________
+    Links Principais e configuracao da Home
+""" 
 def favicon():
+    """Serve Favicon para browsers mais antigos."""
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-# Pagina Incial
 @app.route("/",  methods = ['GET'])
 def index():
+    """Pagina Inicial."""
     return render_template("pages/index.html", page="Sistema eVND")
 
-
-# Menus a serem construidos
 @app.route("/menu/<name>")
 def menu(name):
+    """Menus a serem construidos."""
     return render_template("pages/home.html", page=name)
 
 
-################################# Erros  Personalizados #################################
+""" _________________________________________________________________________________________________
+    Erros  Personalizados
+""" 
 @app.errorhandler(404)
 def page_not_found(e):
+    """Retorna pagina de erro para rotas não existentes e mantém code orginal 404"""
     return render_template("exceptions/404.html"), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
+    """Retorna pagina de erro para erros gerais e mantem code original 500"""
     return render_template("exceptions/500.html"), 500
 
 
-################################# Rotas Cadastro Cliente #################################
+""" _________________________________________________________________________________________________
+    Login Usuarios 
+""" 
+@app.route("/login")
+def login():
+    """Gera pagina de login"""    
+    registrationform = forms.RegistrationForm()
+    return render_template("pages/login.html", registrationform=registrationform, page="Login")
+
+@app.route("/register", methods=["POST"])
+def register():
+    """Registra dados de login"""
+    form = forms.RegistrationForm(request.form)
+    if form.validate():
+        #if DB.get_user(form.email.data):
+        #  form.email.errors.append("Email address already registered")
+        #  return render_template('home.html', registrationform=form)
+        #salt = PH.get_salt()
+        #hashed = PH.get_hash(form.password2.data + salt)
+        #DB.add_user(form.email.data, salt, hashed)
+        flash("Usuario: {}, Senha: {}".format(form.email.data, form.password.data))
+        user = User(form.email.data)
+        login_user(user)
+        return redirect(url_for("login"))
+    flash("Dados inválidos favor preencher corretamente.")
+    return render_template("pages/login.html", registrationform=form)
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = User("email@teste")
+    return User.get_id(user_id)
+
+""" _________________________________________________________________________________________________
+    Cadastro Clientes 
+""" 
+
 @app.route("/customers")
 def customers_index():
     customer_set = Customer.query.all()
@@ -91,8 +132,11 @@ def customers_delete(id):
 
 
 
-################################# Rotas Produtos #################################
+""" _________________________________________________________________________________________________
+    Cadastro Produtos 
+""" 
 @app.route("/products")
+@login_required
 def products_index():
     product_set = Customer.query.all()
     return render_template("pages/products.html", page="Produtos", customers = product_set)

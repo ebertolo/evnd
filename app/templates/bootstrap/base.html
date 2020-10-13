@@ -23,6 +23,13 @@
       {%- block styles %}
       <!-- Cria os links dinâmicos das folhas de estilo do Bootstrap --> 
       <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
+      <style type="text/css">
+        ul.errors {
+          list-style-type: none;
+          padding: 0;
+          color: red;
+        }
+      </style>
       {%- endblock styles %}
     
   {%- endblock head %}
