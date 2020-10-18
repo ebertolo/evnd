@@ -16,34 +16,34 @@
 <div class="container">
     <h2>Register now</h2>
     <form class="form-horizontal" action="/register" method="POST">
-    {{ registrationform.csrf_token }}
+    {{ LoginForm.csrf_token }}
         <div class="form-group">
         <div class="col-sm-9">
-            {% if registrationform.email.errors %}
-                <ul class="errors">{% for error in registrationform.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% if LoginForm.email.errors %}
+                <ul class="errors">{% for error in LoginForm.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            {{ LoginForm.email(class="form-control", placeholder="Endereço de Email" )}}
+        </div>
+        </div>
+        <div class="form-group">
+        <div class="col-sm-9">
+            {% if LoginForm.password.errors %}
+                <ul class="errors">{% for error in LoginForm.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
             {% endif %}
-            {{ registrationform.email(class="form-control", placeholder="Endereço de Email" )}}
+            {{ LoginForm.password(class="form-control", placeholder="Senha" )}}
         </div>
         </div>
         <div class="form-group">
         <div class="col-sm-9">
-            {% if registrationform.password.errors %}
-                <ul class="errors">{% for error in registrationform.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            {% if LoginForm.password2.errors %}
+                <ul class="errors">{% for error in LoginForm.password2.errors %}<li>{{ error }}</li>{% endfor %}</ul>
             {% endif %}
-            {{ registrationform.password(class="form-control", placeholder="Senha" )}}
+            {{ LoginForm.password2(class="form-control", placeholder="Confirmar a Senha" )}}
         </div>
         </div>
         <div class="form-group">
         <div class="col-sm-9">
-            {% if registrationform.password2.errors %}
-                <ul class="errors">{% for error in registrationform.password2.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-            {% endif %}
-            {{ registrationform.password2(class="form-control", placeholder="Confirmar a Senha" )}}
-        </div>
-        </div>
-        <div class="form-group">
-        <div class="col-sm-9">
-            {{ registrationform.submit(class="btn btn-primary btn-block")}}
+            {{ LoginForm.submit(class="btn btn-primary btn-block")}}
         </div>
         </div>
     </form>  

@@ -1,5 +1,7 @@
+from datetime import datetime
+from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
+from app import db, login_manager
 
 class Product(db.Model):
     """ Model Produto """
@@ -157,18 +159,24 @@ class ServiceTicket(db.Model):
 
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """ Model Autenticação """
 
     __tablename__ = "User"
-    email = db.Column(db.String(100), primary_key=True,  unique=True)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(50), unique=True, index=True)
     password_hash = db.Column(db.String(128), nullable=False)
     short_name = db.Column(db.String(50), nullable=False)
-    full_name = db.Column(db.String(50), nullable=False)
+    full_name = db.Column(db.String(50), nullable=False, index=True)
     access_date = db.Column(db.DateTime, nullable=True)
     
-    def __init__(self, email="teste@email.com"):
+    def __init__(self, email,  password, short_name, full_name):
+
         self.email = email
+        self.password = password
+        self.short_name = short_name
+        self.full_name = full_name
+        self.access_date = datetime.now()
                 
     @property
     def password(self):
@@ -181,17 +189,21 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_id(self):
-        return self
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
-    def is_active(self):
-        return True
+    # def get_id(self):
+    #     return self
 
-    def is_anonymous(self):
-        return False
+    # def is_active(self):
+    #     return True
 
-    def is_authenticated(self):
-        return True
+    # def is_anonymous(self):
+    #     return False
+
+    # def is_authenticated(self):
+    #     return True
 
     def __repr__(self):
         return "<Authentication %r>" % self.name

@@ -10,12 +10,16 @@ from flask_login import LoginManager
 app = Flask(__name__)
 app.config.from_object('app.settings')
 
+# Configura biblioteca de acesso
+login_manager = LoginManager()
+login_manager.login_view = 'app.login'
+login_manager.init_app(app)
+
 # Carrega e linka as bibliotecas auxiliares a
 fa = FontAwesome(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
+
 
 # Carrega ORM para linkar classes python com as tabelas do banco, cria as tabelas caso não existam
 db = SQLAlchemy(app)

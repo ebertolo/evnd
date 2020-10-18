@@ -1,10 +1,9 @@
 import os
 from flask import render_template, send_from_directory, session, request, redirect, url_for, flash
 from flask_login import login_required, login_user
-#from wtforms import StringField, SubmitField
-#from wtforms.validators import DataRequired
-#from flask_wtf import FlaskForm
-from app import app, db, forms, login_manager
+
+from werkzeug.exceptions import HTTPException
+from app import app, db, forms
 from app.models import Customer, Product, User
 
 
@@ -41,6 +40,16 @@ def internal_server_error(e):
     """Retorna pagina de erro para erros gerais e mantem code original 500"""
     return render_template("exceptions/500.html"), 500
 
+# TODO: DESCOMENTAR ASSIM QUE TERMINAR OS MODULOS
+# @app.errorhandler(Exception)
+# def handle_500(e):
+#     original = getattr(e, "original_exception", None)
+
+#     if original is None:
+#         return render_template("exceptions/500.html"), 500
+
+#     return render_template("exceptions/500.html", e=original), 500
+
 
 """ _________________________________________________________________________________________________
     Login Usuarios 
@@ -48,31 +57,29 @@ def internal_server_error(e):
 @app.route("/login")
 def login():
     """Gera pagina de login"""    
-    registrationform = forms.RegistrationForm()
-    return render_template("pages/login.html", registrationform=registrationform, page="Login")
+    
+    LoginForm = forms.LoginForm()
+    return render_template("pages/login.html", LoginForm=LoginForm, page="Login")
 
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     """Registra dados de login"""
-    form = forms.RegistrationForm(request.form)
-    if form.validate():
-        #if DB.get_user(form.email.data):
-        #  form.email.errors.append("Email address already registered")
-        #  return render_template('home.html', registrationform=form)
-        #salt = PH.get_salt()
-        #hashed = PH.get_hash(form.password2.data + salt)
-        #DB.add_user(form.email.data, salt, hashed)
-        flash("Usuario: {}, Senha: {}".format(form.email.data, form.password.data))
-        user = User(form.email.data)
-        login_user(user)
-        return redirect(url_for("login"))
-    flash("Dados inválidos favor preencher corretamente.")
-    return render_template("pages/login.html", registrationform=form)
-
-@login_manager.user_loader
-def load_user(user_id):
-    user = User("email@teste")
-    return User.get_id(user_id)
+    
+    #form = forms.LoginForm(request.form)
+    form = forms.LoginForm()
+    if form.validate_on_submit():
+        
+        user = User.query.filter_by(email=form.email.data).firs()
+        if user is not None and user.verify_password(form.password.data):
+            flash("Usuario: {}, Senha: {}".format(form.email.data, form.password.data))
+            
+            login_user(user, form.remember_me.data)
+            next = request.args.get("next")
+            if next is None or not next.startswith("/"):
+                next = url_for("index")
+            return redirect(url_for("login"))
+        flash("Dados inválidos favor preencher corretamente.")
+    return render_template("pages/login.html", LoginForm=form)
 
 """ _________________________________________________________________________________________________
     Cadastro Clientes 

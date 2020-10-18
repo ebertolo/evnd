@@ -29,7 +29,12 @@
                 <li><a href="/menu/Parceiros">Parceiros</a></li>
                 <li><a href="/menu/Assistencia">Assitencia Tecnica</a></li>
                 <li><a href="/menu/Relatorios">Relatorios</a></li>
-                <li><a href="/login">Login</a></li>
+
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('login')}}">Login</a></li>
+            {% else %}
+                <li><a href="{{ url_for('logout')}}">Logout</a></li>
+            {% endif %}
             </ul>
         </div>
     </div> 
