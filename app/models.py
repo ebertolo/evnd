@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
 class Product(db.Model):
@@ -49,7 +50,7 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, index=True)
     tax_id = db.Column(db.String(20), unique=True)
-    customer_type_id = db.Column(db.Integer) # A ser substituido com uma chave extrangeira no futuro
+    customer_type_id = db.Column(db.Integer) # Adicionar relacionamento como chave extrangeira
     contact_name = db.Column(db.String(100))
     contact_phone = db.Column(db.String(15))
     contact_email = db.Column(db.String(100), unique=True)
@@ -120,7 +121,7 @@ class Partner(db.Model):
     contact_phone = db.Column(db.String(15))
     contact_email = db.Column(db.String(100), unique=True)
     tax_id = db.Column(db.String(20), unique=True)
-    partner_type_id = db.Column(db.Integer) # A ser substituido com uma chave extrangeira no futuro
+    partner_type_id = db.Column(db.Integer) # Adicionar relacionamento como chave extrangeira no futuro
 
     def __init__(self, name, contact_name, contact_phone, contact_email, tax_id, partner_type_id):
         self.name = name
@@ -141,9 +142,9 @@ class ServiceTicket(db.Model):
     __tablename__ = "service_ticket"
     id = db.Column(db.Integer, primary_key=True)
     id_status = db.Column(db.Integer)
-    id_customer = db.Column(db.Integer)
-    id_product = db.Column(db.Integer, nullable=True)
-    id_activity = db.Column(db.Integer, nullable=True)
+    id_customer = db.Column(db.Integer)          #adicionar relacionamento de chave estrangeira
+    id_product = db.Column(db.Integer, nullable=True)   #adicionar relacionamento fraco de chave estrangeira
+    id_activity = db.Column(db.Integer, nullable=True)  #adicionar relacionamento fraco de chave estrangeira    
     request_date = db.Column(db.DateTime)
     done_date = db.Column(db.DateTime, nullable=True)
     description = db.Column(db.String(500))
@@ -156,36 +157,41 @@ class ServiceTicket(db.Model):
 
 
 
-class Authentication(db.Model):
+class User(db.Model):
     """ Model Autenticação """
 
-    __tablename__ = "authentication"
+    __tablename__ = "User"
     email = db.Column(db.String(100), primary_key=True,  unique=True)
-    password = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     short_name = db.Column(db.String(50), nullable=False)
+    full_name = db.Column(db.String(50), nullable=False)
     access_date = db.Column(db.DateTime, nullable=True)
     
-    def __init__(self):
-        self.name = name
+    def __init__(self, email="teste@email.com"):
+        self.email = email
                 
+    @property
+    def password(self):
+        raise AttributeError('Password não é um atributo de leitura.')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def get_id(self):
+        return self
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def is_authenticated(self):
+        return True
+
     def __repr__(self):
         return "<Authentication %r>" % self.name
-
-
-class User:
-   email = "email@teste"
-
-   def __init__(self, email):
-      self.email = email
-
-   def get_id(self):
-      return self
-
-   def is_active(self):
-      return True
-
-   def is_anonymous(self):
-      return False
-
-   def is_authenticated(self):
-      return True
