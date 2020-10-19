@@ -8,6 +8,5 @@ class LoginForm(FlaskForm):
         
     email = EmailField('email', validators=[DataRequired(), Length(min=1, max=100, message="Email deve ter até 100 caracteres."), Email()])
     password = PasswordField('password', validators=[DataRequired(), Length(min=6, message="A senha deve ter pelo menos 6 caracteres.")])
-    password2 = PasswordField('password2', validators=[DataRequired(), EqualTo('password', message='Senhas devem ser iguais.')])
     remember_me = BooleanField('Manter-me logado')
     submit = SubmitField('Entrar', [DataRequired()])

@@ -12,14 +12,15 @@ app.config.from_object('app.settings')
 
 # Configura biblioteca de acesso
 login_manager = LoginManager()
-login_manager.login_view = 'app.login'
+login_manager.login_view = 'login'
+login_manager.login_message = "Para acessar esta página favor logar no eVND."
+login_manager.login_message_category = "info"
 login_manager.init_app(app)
 
-# Carrega e linka as bibliotecas auxiliares a
+# Carrega e linka as bibliotecas auxiliares ao app principal
 fa = FontAwesome(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
-
 
 # Carrega ORM para linkar classes python com as tabelas do banco, cria as tabelas caso não existam
 db = SQLAlchemy(app)

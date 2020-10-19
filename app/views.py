@@ -1,15 +1,14 @@
 import os
 from flask import render_template, send_from_directory, session, request, redirect, url_for, flash
-from flask_login import login_required, login_user
-
+from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Customer, Product, User
 
 
-""" _________________________________________________________________________________________________
-    Links Principais e configuracao da Home
-""" 
+#   _________________________________________________________________________________________________
+#   Links Principais e configuracao da Home
+
 def favicon():
     """Serve Favicon para browsers mais antigos."""
     return send_from_directory(os.path.join(app.root_path, 'static'),
@@ -26,14 +25,13 @@ def menu(name):
     return render_template("pages/home.html", page=name)
 
 
-""" _________________________________________________________________________________________________
-    Erros  Personalizados
-""" 
+#   _________________________________________________________________________________________________
+#   Erros  Personalizados
+
 @app.errorhandler(404)
 def page_not_found(e):
     """Retorna pagina de erro para rotas não existentes e mantém code orginal 404"""
     return render_template("exceptions/404.html"), 404
-
 
 @app.errorhandler(500)
 def internal_server_error(e):
@@ -43,47 +41,46 @@ def internal_server_error(e):
 # TODO: DESCOMENTAR ASSIM QUE TERMINAR OS MODULOS
 # @app.errorhandler(Exception)
 # def handle_500(e):
+#     """Gerencia erros internos não previstos e exibe mensagem amigável"""
 #     original = getattr(e, "original_exception", None)
-
+#
 #     if original is None:
 #         return render_template("exceptions/500.html"), 500
-
+#
 #     return render_template("exceptions/500.html", e=original), 500
 
 
-""" _________________________________________________________________________________________________
-    Login Usuarios 
-""" 
-@app.route("/login")
-def login():
-    """Gera pagina de login"""    
-    
-    LoginForm = forms.LoginForm()
-    return render_template("pages/login.html", LoginForm=LoginForm, page="Login")
+#   _________________________________________________________________________________________________
+#   Login Usuarios 
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """Registra dados de login"""
-    
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Renderiza e processa o formulário de login"""
     #form = forms.LoginForm(request.form)
     form = forms.LoginForm()
     if form.validate_on_submit():
-        
-        user = User.query.filter_by(email=form.email.data).firs()
+        user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
-            flash("Usuario: {}, Senha: {}".format(form.email.data, form.password.data))
-            
+            flash("Usuario {} logado com sucesso no eVND.".format(form.email.data))
             login_user(user, form.remember_me.data)
             next = request.args.get("next")
             if next is None or not next.startswith("/"):
                 next = url_for("index")
-            return redirect(url_for("login"))
+            return redirect(next) #(url_for("login"))
         flash("Dados inválidos favor preencher corretamente.")
     return render_template("pages/login.html", LoginForm=form)
 
-""" _________________________________________________________________________________________________
-    Cadastro Clientes 
-""" 
+@app.route("/logout")
+@login_required
+def logout():
+    """Processa comando de logout"""
+    logout_user()
+    flash("Você efetuou logout do eVND")
+    return redirect(url_for("index"))
+
+
+#   _________________________________________________________________________________________________
+#   Cadastro Clientes 
 
 @app.route("/customers")
 def customers_index():
@@ -112,6 +109,7 @@ def customers_insert():
 
 #Update
 @app.route('/customers/update', methods = ['GET', 'POST'])
+@login_required
 def customers_update():
 
     if request.method == 'POST':
