@@ -1,3 +1,4 @@
+#/usr/bin/python3
 import os
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment

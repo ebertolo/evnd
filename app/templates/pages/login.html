@@ -15,7 +15,7 @@
 
 <div class="container">
     <h2>Login</h2>
-    <form class="form-horizontal" action="/login" method="POST">
+    <form class="form-horizontal" action="{{ '/login?next={}'.format(request.args.get('next', '')) or url_for('login') }}" method="POST">
     {{ LoginForm.csrf_token }}
         <div class="form-group">
         <div class="col-sm-9">
