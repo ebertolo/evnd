@@ -5,7 +5,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask import Flask
-from flask_login import LoginManager
+from flask_login import LoginManager 
 
 # Inicializa aplicação flask e carrega as configurações do arquivo setting.py
 app = Flask(__name__)

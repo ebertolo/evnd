@@ -12,7 +12,7 @@ class Role(db.Model):
     __tablename__ = "Role"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    users =  db.relationship("User", back_populates="roles")
+    users =  db.relationship("User", back_populates="role")
 
     def __init__(self, name):
         """Método Construtor da Classe"""
@@ -35,18 +35,18 @@ class User(UserMixin, db.Model):
     short_name = db.Column(db.String(50), nullable=False)
     full_name = db.Column(db.String(50), nullable=False, index=True)
     access_date = db.Column(db.DateTime, nullable=True)
-    roles = db.relationship("Role", back_populates="users")
+    role = db.relationship("Role", back_populates="users")
 
     
-    def __init__(self, email,  password, short_name, full_name, role_id):
+    def __init__(self, email,  password, short_name, full_name, id_role):
         """Método Construtor da Classe"""
         self.email = email
         self.password = password
         self.short_name = short_name
         self.full_name = full_name
         self.access_date = datetime.now()
-        self.role_id = role_id
-                
+        self.id_role = id_role
+    
     @property
     def password(self):
         """Propriedade Bloqueada para Leitura"""
