@@ -36,7 +36,6 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(50), nullable=False, index=True)
     access_date = db.Column(db.DateTime, nullable=True)
     role = db.relationship("Role", back_populates="users")
-
     
     def __init__(self, email,  password, short_name, full_name, id_role):
         """Método Construtor da Classe"""
@@ -72,7 +71,7 @@ class User(UserMixin, db.Model):
 
 
 class Product(db.Model):
-    """ Model Produto """
+    """Model Produto"""
 
     __tablename__ = "Product"
     id = db.Column(db.Integer, primary_key=True)
@@ -96,7 +95,7 @@ class Product(db.Model):
 
 
 class SalesPerson(db.Model):
-    """ Model Equipe de Vendas """
+    """Model Equipe de Vendas"""
 
     __tablename__ = "Sales_Person"
     id = db.Column(db.Integer, primary_key=True)
@@ -117,7 +116,7 @@ class SalesPerson(db.Model):
 
 
 class Customer(db.Model):
-    """ Model Cliente """
+    """Model Cliente"""
 
     __tablename__ = "Customer"
     id = db.Column(db.Integer, primary_key=True)
@@ -135,7 +134,6 @@ class Customer(db.Model):
     state = db.Column(db.String(2), nullable=True)
     service_tickets = db.relationship("ServiceTicket", back_populates="customer")
     activities = db.relationship("Activity", back_populates="customer")
-
 
     def __init__(self, name, tax_id, customer_type_id,
                     contact_name, contact_phone, contact_email, 
@@ -159,40 +157,8 @@ class Customer(db.Model):
 
 
 
-class Activity(db.Model):
-    """ Model Ativididades"""
-
-    __tablename__ = "Activity"
-    id = db.Column(db.Integer, primary_key=True)
-    id_status = db.Column(db.Integer)
-    id_activity_type = db.Column(db.String(50), unique=True)
-    id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))
-    id_sales_person = db.Column(db.Integer, db.ForeignKey("Sales_Person.id"))
-    id_product = db.Column(db.Integer, nullable=True)
-    planned_date = db.Column(db.DateTime)
-    done_date = db.Column(db.DateTime, nullable=True)
-    description = db.Column(db.String(500))
-    sales_person = db.relationship("SalesPerson", back_populates="activities")
-    customer = db.relationship("Customer", back_populates="activities")
-
-    def __init__(self, id_status, id_activity_type, id_customer, id_sales_person, id_product, planned_date, done_date, description):
-        """Método Construtor da Classe"""
-        self.id_status = id_status
-        self.id_activity_type = id_activity_type
-        self.id_customer = id_customer
-        self.id_sales_person = id_sales_person
-        self.id_product = id_product 
-        self.planned_date = planned_date
-        self.done_date = done_date
-        self.description = description
-
-    def __repr__(self):
-        return "<Activity %r>" % str(self.id)
-
-
-
 class Partner(db.Model):
-    """ Model Parceiros - Fornecedores, Assistencia Tecnica"""
+    """Model Parceiros - Fornecedores, Assistencia Tecnica"""
 
     __tablename__ = "Partner"
     id = db.Column(db.Integer, primary_key=True)
@@ -217,8 +183,40 @@ class Partner(db.Model):
 
 
 
+class Activity(db.Model):
+    """Model Ativididades"""
+
+    __tablename__ = "Activity"
+    id = db.Column(db.Integer, primary_key=True)
+    id_status = db.Column(db.Integer)
+    id_activity_type = db.Column(db.String(50), unique=True)
+    id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))
+    id_sales_person = db.Column(db.Integer, db.ForeignKey("Sales_Person.id"))
+    id_product = db.Column(db.Integer, nullable=True)
+    planned_date = db.Column(db.DateTime)
+    done_date = db.Column(db.DateTime, nullable=True)
+    description = db.Column(db.String(500))
+    sales_person = db.relationship("SalesPerson", back_populates="activities")
+    customer = db.relationship("Customer", back_populates="activities")
+
+    def __init__(self, id_status, id_activity_type, id_customer, id_sales_person, id_product, done_date, description, planned_date):
+        """Método Construtor da Classe"""
+        self.id_status = id_status
+        self.id_activity_type = id_activity_type
+        self.id_customer = id_customer
+        self.id_sales_person = id_sales_person
+        self.id_product = id_product 
+        self.planned_date = convert_to_date(planned_date)
+        self.done_date = convert_to_date(done_date) if not done_date is None else None
+        self.description = description
+
+    def __repr__(self):
+        return "<Activity %r>" % str(self.id)
+
+
+
 class ServiceTicket(db.Model):
-    """ Model Chamados """
+    """Model Chamados"""
 
     __tablename__ = "Service_Ticket"
     id = db.Column(db.Integer, primary_key=True)
@@ -230,18 +228,21 @@ class ServiceTicket(db.Model):
     done_date = db.Column(db.DateTime, nullable=True)
     description = db.Column(db.String(500))
     customer = db.relationship("Customer", back_populates="service_tickets")
-
     
-    def __init__(self, id_status, id_customer, id_product, id_activity, request_date, done_date, description):
+    def __init__(self, id_status, id_customer, id_product, id_activity, done_date, description, request_date):
         """Método Construtor da Classe"""
         self.id_status = id_status
         self.id_customer = id_customer
         self.id_product = id_product
         self.id_activity = id_activity
-        self.request_date = request_date
-        self.done_date = done_date
+        self.request_date = convert_to_date(request_date) 
+        self.done_date = convert_to_date(done_date) if not done_date is None else None
         self.description = description
-
                 
     def __repr__(self):
         return "<ServiceTicket %r>" % str(self.id)
+
+def convert_to_date(str_date):
+    """Converte uma string para o formato datetime python suportado pelo SQLAlchemy"""
+    
+    return datetime.strptime(str_date, "%d/%m/%Y")
