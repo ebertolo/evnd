@@ -189,7 +189,7 @@ class Activity(db.Model):
     __tablename__ = "Activity"
     id = db.Column(db.Integer, primary_key=True)
     id_status = db.Column(db.Integer)
-    id_activity_type = db.Column(db.String(50), unique=True)
+    id_activity_type = db.Column(db.String(50))
     id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))
     id_sales_person = db.Column(db.Integer, db.ForeignKey("Sales_Person.id"))
     id_product = db.Column(db.Integer, nullable=True)
