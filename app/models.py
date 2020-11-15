@@ -70,26 +70,71 @@ class User(UserMixin, db.Model):
 
 
 
+class Customer(db.Model):
+    """Model Cliente"""
+
+    __tablename__ = "Customer"
+    id = db.Column(db.Integer, primary_key=True)
+    tax_id = db.Column(db.String(20), unique=True)
+    customer_type_id = db.Column(db.Integer) # TODO// Adicionar relacionamento como chave extrangeira
+    name = db.Column(db.String(100), unique=True, index=True)
+    contact_name = db.Column(db.String(100))
+    contact_phone = db.Column(db.String(15))
+    contact_email = db.Column(db.String(100), unique=True)
+    address_line1 = db.Column(db.String(100), nullable=True)
+    address_line2 = db.Column(db.String(100), nullable=True)
+    number = db.Column(db.String(10), nullable=True)
+    postal_code = db.Column(db.String(10), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(2), nullable=True)
+    service_tickets = db.relationship("ServiceTicket", back_populates="customer")
+    activities = db.relationship("Activity", back_populates="customer")
+
+    def __init__(self, tax_id, customer_type_id, name,
+                    contact_name, contact_phone, contact_email, 
+                    address_line1, address_line2, number, postal_code, city, state):
+        """Método Construtor da Classe"""
+        self.name = name
+        self.tax_id = tax_id # CNPJ Do Cliente
+        self.customer_type_id = customer_type_id
+        self.contact_name = contact_name
+        self.contact_phone = contact_phone
+        self.contact_email = contact_email
+        self.address_line1 = address_line1
+        self.address_line2 = address_line2
+        self.number = number
+        self.postal_code = postal_code
+        self.city = city
+        self.state = state
+        
+    def __repr__(self):
+        """String padrão que descreve o objeto"""
+        return "<Customer %r>" % self.name
+
+
 class Product(db.Model):
     """Model Produto"""
 
     __tablename__ = "Product"
     id = db.Column(db.Integer, primary_key=True)
+    code =  db.Column(db.String(100)) #Codigo do Fornecedor
     name = db.Column(db.String(100), unique=True, index=True)
-    info = db.Column(db.String(500))
+    info = db.Column(db.String(500))  #Descricao do Produto
     html_link = db.Column(db.String(250), nullable=True)
-    product_group_name_short = db.Column(db.String(30))
-    product_group_name_long = db.Column(db.String(100))
+    group_name_short = db.Column(db.String(30))
+    group_name_long = db.Column(db.String(100))
 
-    def __init__(self, name, info, html_link, product_group_name_short, product_group_name_long):
+    def __init__(self, code, name, info, html_link, group_name_short, group_name_long):
         """Método Construtor da Classe"""
+        self.code = code 
         self.name = name
         self.info = info
         self.html_link = html_link
-        self.product_group_name_short = product_group_name_short
-        self.product_group_name_long = product_group_name_long
+        self.group_name_short = group_name_short
+        self.group_name_long = group_name_long
 
     def __repr__(self):
+        """String padrão que descreve o objeto"""
         return "<Product %r>" % self.name
 
 
@@ -111,49 +156,8 @@ class SalesPerson(db.Model):
         self.email = email
 
     def __repr__(self):
+        """String padrão que descreve o objeto"""
         return "<SalesPerson %r>" % self.name
-
-
-
-class Customer(db.Model):
-    """Model Cliente"""
-
-    __tablename__ = "Customer"
-    id = db.Column(db.Integer, primary_key=True)
-    tax_id = db.Column(db.String(20), unique=True)
-    customer_type_id = db.Column(db.Integer) # TODO// Adicionar relacionamento como chave extrangeira
-    name = db.Column(db.String(100), unique=True, index=True)
-    contact_name = db.Column(db.String(100))
-    contact_phone = db.Column(db.String(15))
-    contact_email = db.Column(db.String(100), unique=True)
-    address_line1 = db.Column(db.String(100), nullable=True)
-    address_line2 = db.Column(db.String(100), nullable=True)
-    number = db.Column(db.String(10), nullable=True)
-    postal_code = db.Column(db.String(10), nullable=True)
-    city = db.Column(db.String(100), nullable=True)
-    state = db.Column(db.String(2), nullable=True)
-    service_tickets = db.relationship("ServiceTicket", back_populates="customer")
-    activities = db.relationship("Activity", back_populates="customer")
-
-    def __init__(self, name, tax_id, customer_type_id,
-                    contact_name, contact_phone, contact_email, 
-                    address_line1, address_line2, number, postal_code, city, state):
-        """Método Construtor da Classe"""
-        self.name = name
-        self.tax_id = tax_id # CNPJ Do Cliente
-        self.customer_type_id = customer_type_id
-        self.contact_name = contact_name
-        self.contact_phone = contact_phone
-        self.contact_email = contact_email
-        self.address_line1 = address_line1
-        self.address_line2 = address_line2
-        self.number = number
-        self.postal_code = postal_code
-        self.city = city
-        self.state = state
-        
-    def __repr__(self):
-        return "<Customer %r>" % self.name
 
 
 
@@ -179,6 +183,7 @@ class Partner(db.Model):
         self.partner_type_id = partner_type_id
         
     def __repr__(self):
+        """String padrão que descreve o objeto"""
         return "<Partner %r>" % self.name
 
 
@@ -224,6 +229,7 @@ class ServiceTicket(db.Model):
     id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))        
     id_product = db.Column(db.Integer, nullable=True)   # Relacionamento fraco, nao usar chave estrangeira
     id_activity = db.Column(db.Integer, nullable=True)  # Relacionamento fraco, nao usar chave estrangeira
+    id_partner = db.Column(db.Integer, nullable=True) # Relacionamento fraco, nao usar chave estrangeira
     request_date = db.Column(db.DateTime)
     done_date = db.Column(db.DateTime, nullable=True)
     description = db.Column(db.String(500))
@@ -244,5 +250,4 @@ class ServiceTicket(db.Model):
 
 def convert_to_date(str_date):
     """Converte uma string para o formato datetime python suportado pelo SQLAlchemy"""
-    
     return datetime.strptime(str_date, "%d/%m/%Y")

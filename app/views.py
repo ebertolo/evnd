@@ -1,26 +1,29 @@
 #/usr/bin/python3
 import os
+from re import S
 from urllib.parse import urlparse, urljoin
 from flask import render_template, send_from_directory, session, request, redirect, url_for, flash, abort
 from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
-from app.models import Customer, Product, User
+from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User
 
 
-#   _________________________________________________________________________________________________
-#   Links Principais e configuracao da Home
-
+""" _________________________________________________________________________________________________
+    Links Principais e configuracao da Home
+"""
 def favicon():
     """Serve Favicon para browsers mais antigos."""
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(os.path.join(app.root_path, "static"),
+                               "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
-@app.route("/",  methods = ['GET'])
+
+@app.route("/",  methods = ["GET"])
 @login_required
 def index():
     """Pagina Inicial."""
     return render_template("pages/index.html", page="Sistema eVND")
+
 
 @app.route("/menu/<name>")
 @login_required
@@ -29,18 +32,21 @@ def menu(name):
     return render_template("pages/home.html", page=name)
 
 
-#   _________________________________________________________________________________________________
-#   Erros  Personalizados
 
+""" _________________________________________________________________________________________________
+    Erros  Personalizados
+""" 
 @app.errorhandler(404)
 def page_not_found(e):
     """Retorna pagina de erro para rotas não existentes e mantém code orginal 404"""
     return render_template("exceptions/404.html"), 404
 
+
 @app.errorhandler(500)
 def internal_server_error(e):
     """Retorna pagina de erro para erros gerais e mantem code original 500"""
     return render_template("exceptions/500.html"), 500
+
 
 # TODO: DESCOMENTAR ASSIM QUE TERMINAR OS MODULOS
 # @app.errorhandler(Exception)
@@ -54,14 +60,16 @@ def internal_server_error(e):
 #     return render_template("exceptions/500.html", e=original), 500
 
 
+
 """ _________________________________________________________________________________________________
     Login Usuarios 
 """ 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Renderiza e processa o formulário de login"""
+    
     form = forms.LoginForm()
-    next = request.args.get('next')
+    next = request.args.get("next")
     print(next)
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -71,10 +79,11 @@ def login():
 
             if not is_safe_url(next):
                 return abort(400)
-            return redirect(next or url_for('index'))
+            return redirect(next or url_for("index"))
 
         flash("Dados inválidos favor preencher corretamente.")
     return render_template("pages/login.html",  LoginForm=form)
+
 
 @app.route("/logout")
 @login_required
@@ -85,129 +94,422 @@ def logout():
     return redirect(url_for("login"))
 
 
-""" _________________________________________________________________________________________________
-    Cadastro Clientes 
-"""
-@app.route("/customers")
-@login_required
-def customers_index():
-    customer_set = Customer.query.all()
-    return render_template("pages/customers.html", page="Clientes", customers = customer_set)
-
-#Insert
-@app.route('/customers/insert', methods = ['POST'])
-@login_required
-def customers_insert():
-
-    if request.method == 'POST':
-        name = request.form['name']
-        tax_id = request.form['tax_id']
-        contact_name = request.form['contact_name']
-        contact_phone = request.form['contact_phone']
-        contact_email = request.form['contact_email']
-        customer_type_id = request.form['customer_type_id']
-
-
-        my_data = Customer(name, tax_id, contact_name, contact_phone, contact_email, customer_type_id)
-        db.session.add(my_data)
-        db.session.commit()
-
-        flash("Cliente cadastro com sucesso")
-        return redirect(url_for('customers_index'))
-
-#Update
-@app.route('/customers/update', methods = ['GET', 'POST'])
-@login_required
-def customers_update():
-
-    if request.method == 'POST':
-        my_data = Customer.query.get(request.form.get('id'))
-        my_data.name = request.form['name']
-        my_data.tax_id = request.form['tax_id']
-        my_data.contact_name = request.form['contact_name']
-        my_data.contact_phone = request.form['contact_phone']
-        my_data.contact_email = request.form['contact_email']
-        my_data.customer_type_id = request.form['customer_type_id']
-        db.session.commit()
-
-        flash("Cliente atualizado com sucesso.")
-        return redirect(url_for('customers_index'))
-
-#Delete
-@app.route('/customers/delete/<id>/', methods = ['GET', 'POST'])
-@login_required
-def customers_delete(id):
-    my_data = Customer.query.get(id)
-    db.session.delete(my_data)
-    db.session.commit()
-
-    flash("Cliente excluído com successo.")
-    return redirect(url_for('customers_index'))
-
-
-
-""" _________________________________________________________________________________________________
-    Cadastro Produtos 
-""" 
-@app.route("/products")
-@login_required
-def products_index():
-    product_set = Customer.query.all()
-    return render_template("pages/products.html", page="Produtos", customers = product_set)
-
-#Insert
-@app.route('/products/insert', methods = ['POST'])
-@login_required
-def products_insert():
-
-    if request.method == 'POST':
-        name = request.form['name']
-        info = request.form['info']
-        html_link = request.form['html_link']
-        product_group_name_short = request.form['product_group_name_short']
-        product_group_name_long = request.form['product_group_name_long']
-
-
-        my_data = Product(name, info, html_link, product_group_name_short, product_group_name_long)
-        db.session.add(my_data)
-        db.session.commit()
-
-        flash("Produto cadastro com sucesso")
-        return redirect(url_for('products_index'))
-
-#Update
-@app.route('/products/update', methods = ['GET', 'POST'])
-@login_required
-def products_update():
-
-    if request.method == 'POST':
-        my_data = Product.query.get(request.form.get('id'))
-        my_data.name = request.form['name']
-        my_data.info = request.form['info']
-        my_data.html_link = request.form['html_link']
-        my_data.product_group_name_short = request.form['product_group_name_short']
-        my_data.product_group_name_long = request.form['product_group_name_long']
-        db.session.commit()
-
-        flash("Produto atualizado com sucesso.")
-        return redirect(url_for('products_index'))
-
-#Delete
-@app.route('/products/delete/<id>/', methods = ['GET', 'POST'])
-@login_required
-def products_delete(id):
-    my_data = Product.query.get(id)
-    db.session.delete(my_data)
-    db.session.commit()
-
-    flash("Produto excluído com successo.")
-    return redirect(url_for('products_index'))
-
-
-
-
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
+    return test_url.scheme in ("http", "https") and \
            ref_url.netloc == test_url.netloc
+
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Clientes - CRUD
+"""
+#Create
+@login_required
+@app.route("/customers/insert", methods = ["POST"])
+def customers_insert():
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    
+    if request.method == "POST":
+        tax_id = request.form["tax_id"]
+        customer_type_id = request.form["customer_type_id"]
+        name = request.form["name"]
+        contact_name = request.form["contact_name"]
+        contact_phone = request.form["contact_phone"]
+        contact_email = request.form["contact_email"]
+        address_line1 = request.form["address_line1"]
+        address_line2 = request.form["address_line2"]
+        number = request.form["number"]
+        postal_code = request.form["postal_code"]
+        city = request.form["city"]
+        state = request.form["state"]
+
+        customer = Customer(tax_id, customer_type_id, name, contact_name, contact_phone, contact_email, \
+            address_line1, address_line2, number, postal_code, city, state)
+        db.session.add(customer)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("customers_index"))
+
+
+#Read
+@app.route("/customers", methods = ["GET"])
+@login_required
+def customers_index():
+    """Lista os objetos persistidos no DB"""
+    customer_set = Customer.query.all()
+    return render_template("pages/customers.html", page="Clientes", customers = customer_set)
+
+
+#Update
+@app.route("/customers/update", methods = ["GET","POST"])
+@login_required
+def customers_update():
+    
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        customer = Customer.query.get(request.form.get("id"))
+        customer.name = request.form["name"]
+        customer.tax_id = request.form["tax_id"]
+        customer.customer_type_id = request.form["customer_type_id"]
+        customer.contact_name = request.form["contact_name"]
+        customer.contact_phone = request.form["contact_phone"]
+        customer.contact_email = request.form["contact_email"]
+        customer.address_line1 = request.form["address_line1"]
+        customer.address_line2 = request.form["address_line2"]
+        customer.number = request.form["nunmber"]
+        customer.postal_code = request.form["postal_code"]
+        customer.city = request.form["city"]
+        customer.state = request.form["state"]
+        db.session.commit()
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("customers_index"))
+
+
+#Delete
+@app.route("/customers/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def customers_delete(id):
+    "Exclui objeto selecionado"
+    customer = Customer.query.get(id)
+    db.session.delete(customer)
+    db.session.commit()
+
+    flash("Cadastro excluído com successo.")
+    return redirect(url_for("customers_index"))
+
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Produtos - CRUD
+""" 
+#Create
+@app.route("/products/insert", methods = ["POST"])
+@login_required
+def products_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        code =  request.form["code"]
+        name = request.form["name"]
+        info = request.form["info"]
+        html_link = request.form["html_link"]
+        group_name_short = request.form["group_name_short"]
+        group_name_long = request.form["group_name_long"]
+
+        product = Product(code, name, info, html_link, group_name_short, group_name_long)
+        db.session.add(product)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("products_index"))
+
+
+#Read
+@app.route("/products")
+@login_required
+def products_index():
+    """Lista os objetos persistidos no DB"""
+    product_set = Product.query.all()
+    return render_template("pages/products.html", page="Produtos", products = product_set)
+
+
+#Update
+@app.route("/products/update", methods = ["GET", "POST"])
+@login_required
+def products_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        product = Product.query.get(request.form.get("id"))
+        product.code = request.form["code"]
+        product.name = request.form["name"]
+        product.info = request.form["info"]
+        product.html_link = request.form["html_link"]
+        product.group_name_short = request.form["group_name_short"]
+        product.group_name_long =  request.form["group_name_long"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("products_index"))
+
+
+#Delete
+@app.route("/products/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def products_delete(id):
+    product = Product.query.get(id)
+    db.session.delete(product)
+    db.session.commit()
+
+    flash("Cadastro excluído com successo.")
+    return redirect(url_for("products_index"))
+
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Força de Vendas - CRUD
+""" 
+#Create
+@app.route("/sales-person/insert", methods = ["POST"])
+@login_required
+def sales_person_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        name = request.form["name"]
+        phone = request.form["phone"]
+        email = request.form["email"]
+
+        salesperson = SalesPerson(name, phone, email)
+        db.session.add(salesperson)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("sales_person_index"))
+
+
+#Read
+@app.route("/sales-person")
+@login_required
+def sales_person_index():
+    """Lista os objetos persistidos no DB"""
+    salesperson_set = SalesPerson.query.all()
+    return render_template("pages/sales-person.html", page="Time de Vendas", salesteam = salesperson_set)
+
+
+#Update
+@app.route("/sales-person/update", methods = ["GET", "POST"])
+@login_required
+def sales_person_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        salesperson = SalesPerson.query.get(request.form.get("id"))
+        salesperson.name = request.form["name"]
+        salesperson.phone = request.form["phone"]
+        salesperson.email = request.form["email"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("sales_person_index"))
+
+
+#Delete
+@app.route("/sales-person/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def sales_person_delete(id):
+    salesperson = SalesPerson.query.get(id)
+    db.session.delete(salesperson)
+    db.session.commit()
+
+    flash("Cadastro excluído com sucesso.")
+    return redirect(url_for("sales_person_index"))
+
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Parceiros (Fornecedores e Assistência Ténica) - CRUD
+""" 
+#Create
+@app.route("/partner/insert", methods = ["POST"])
+@login_required
+def partner_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        name  = request.form["name"]
+        contact_name = request.form["contact_name"]
+        contact_phone = request.form["contact_phone"]
+        contact_email = request.form["contact_email"]
+        tax_id = request.form["tax_id"]
+        partner_type_id = request.form["partner_type_id"]
+
+        partner = Partner(name, contact_name, contact_phone, contact_email, tax_id, partner_type_id)
+        db.session.add(partner)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("partner_index"))
+
+
+#Read
+@app.route("/partner")
+@login_required
+def partner_index():
+    """Lista os objetos persistidos no DB"""
+    partner_set = Partner.query.all()
+    return render_template("pages/partner.html", page="Parceiros", partners = partner_set)
+
+
+#Update
+@app.route("/partner/update", methods = ["GET", "POST"])
+@login_required
+def partner_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        partner = Partner.query.get(request.form.get("id"))
+        partner.name = request.form["name"]
+        partner.contact_name = request.form["contact_name"]
+        partner.contact_phone = request.form["contact_phone"]
+        partner.contact_email = request.form["contact_email"]
+        partner.tax_id =  request.form["tax_id"]
+        partner.partner_type_id =  request.form["partner_type_id"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("partner_index"))
+
+
+#Delete
+@app.route("/partner/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def partner_delete(id):
+    partner = Partner.query.get(id)
+    db.session.delete(partner)
+    db.session.commit()
+
+    flash("Cadastro excluído com sucesso.")
+    return redirect(url_for("partner_index"))
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Atividades do CRM  - CRUD
+""" 
+#Create
+@app.route("/actvities/insert", methods = ["POST"])
+@login_required
+def activities_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        id_status = request.form["id_status"]
+        id_activity_type = request.form["id_activity_type"]
+        id_customer = request.form["id_customer"]
+        id_sales_person = request.form["id_sales_person"]
+        id_product = request.form["id_product"]
+        planned_date = request.form["planned_date"]
+        done_date = request.form["done_date"]
+        description = request.form["description"]
+
+        partner = Partner(id_status, id_activity_type, id_customer, id_sales_person, id_product, \
+                          planned_date, done_date, description)
+        db.session.add(partner)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("activities_index"))
+
+
+#Read
+@app.route("/actvities")
+@login_required
+def activities_index():
+    """Lista os objetos persistidos no DB"""
+    activity_set = Activity.query.all()
+    return render_template("pages/activities.html", page="Atividades", activities = activity_set)
+
+
+#Update
+@app.route("/actvities/update", methods = ["GET", "POST"])
+@login_required
+def activities_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        activity = Activity.query.get(request.form.get("id"))
+        activity.id_status = request.form["id_status"]
+        activity.id_activity_type = request.form["id_activity_type"]
+        activity.id_customer = request.form["id_customer"]
+        activity.id_sales_person = request.form["id_sales_person"]
+        activity.id_product = request.form["id_product"]
+        activity.planned_date = request.form["planned_date"]
+        activity.done_date = request.form["done_date"]
+        activity.description = request.form["description"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("activities_index"))
+
+
+#Delete
+@app.route("/actvities/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def activities_delete(id):
+    activity = Activity.query.get(id)
+    db.session.delete(activity)
+    db.session.commit()
+
+    flash("Cadastro excluído com sucesso.")
+    return redirect(url_for("activities_index"))
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Chamados do CRM  - CRUD
+""" 
+#Create
+@app.route("/service-tickets/insert", methods = ["POST"])
+@login_required
+def service_ticket_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        id_status = request.form["id_status"]
+        id_customer = request.form["id_customer"]
+        id_product = request.form["id_product"]
+        id_activity = request.form["id_activity"]
+        id_partner = request.form["id_partner"]
+        requested_date = request.form["requested_date"]
+        done_date = request.form["done_date"]
+        description = request.form["description"]
+
+        serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
+                          requested_date, done_date, description)
+        db.session.add(serviceticket)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("service_ticket_index"))
+
+
+#Read
+@app.route("/service-tickets")
+@login_required
+def service_ticket_index():
+    """Lista os objetos persistidos no DB"""
+    serviceticket_set = ServiceTicket.query.all()
+    return render_template("pages/service-ticket.html", page="Chamados", servicetickets = serviceticket_set)
+
+
+#Update
+@app.route("/service-tickets/update", methods = ["GET", "POST"])
+@login_required
+def service_ticket_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        serviceticket = ServiceTicket.query.get(request.form.get("id"))
+        serviceticket.id_status = request.form["id_status"]
+        serviceticket.id_customer = request.form["id_customer"]
+        serviceticket.id_product = request.form["id_product"]
+        serviceticket.id_activity = request.form["id_activity"]
+        serviceticket.id_partner = request.form["id_partner"]
+        serviceticket.requested_date = request.form["requested_date"]
+        serviceticket.done_date = request.form["done_date"]
+        serviceticket.description = request.form["description"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("service_ticket_index"))
+
+
+#Delete
+@app.route("/service-tickets/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def service_ticket_delete(id):
+    serviceticket = ServiceTicket.query.get(id)
+    db.session.delete(serviceticket)
+    db.session.commit()
+    
+
+    flash("Cadastro excluído com sucesso.")
+    return redirect(url_for("service_ticket_index"))
