@@ -6,8 +6,8 @@ from flask import render_template, send_from_directory, session, request, redire
 from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
-from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User
-from app.models import get_customer_types, get_states
+from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, get_partner_types
+from app.models import get_customer_types, get_states, get_partner_types
 
 
 """ _________________________________________________________________________________________________
@@ -278,7 +278,7 @@ def sales_person_insert():
 def sales_person_index():
     """Lista os objetos persistidos no DB"""
     salesperson_set = SalesPerson.query.all()
-    return render_template("pages/sales-person.html", page="Time de Vendas", salesteam = salesperson_set)
+    return render_template("pages/sales-team.html", page="Equipe", salesteam=salesperson_set)
 
 
 #Update
@@ -298,7 +298,7 @@ def sales_person_update():
 
 
 #Delete
-@app.route("/sales-person/delete/<id>/", methods = ["GET", "POST"])
+@app.route("/salesperson/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def sales_person_delete(id):
     salesperson = SalesPerson.query.get(id)
@@ -314,7 +314,7 @@ def sales_person_delete(id):
     Cadastro Parceiros (Fornecedores e Assistência Ténica) - CRUD
 """ 
 #Create
-@app.route("/partner/insert", methods = ["POST"])
+@app.route("/partners/insert", methods = ["POST"])
 @login_required
 def partner_insert():
 
@@ -336,16 +336,16 @@ def partner_insert():
 
 
 #Read
-@app.route("/partner")
+@app.route("/partners")
 @login_required
 def partner_index():
     """Lista os objetos persistidos no DB"""
     partner_set = Partner.query.all()
-    return render_template("pages/partner.html", page="Parceiros", partners = partner_set)
+    return render_template("pages/partners.html", page="Parceiros", partner_types=get_partner_types(), partners = partner_set)
 
 
 #Update
-@app.route("/partner/update", methods = ["GET", "POST"])
+@app.route("/partners/update", methods = ["GET", "POST"])
 @login_required
 def partner_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
@@ -364,7 +364,7 @@ def partner_update():
 
 
 #Delete
-@app.route("/partner/delete/<id>/", methods = ["GET", "POST"])
+@app.route("/partners/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def partner_delete(id):
     partner = Partner.query.get(id)

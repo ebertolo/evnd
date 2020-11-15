@@ -31,28 +31,28 @@
                     </tr>
  
                    {% for row in customers %}
-                    <tr>
-                        <td>{{row.id}}</td>
-                        <td>{{row.name}}</td>
+                        <tr>
+                            <td>{{row.id}}</td>
+                            <td>{{row.name}}</td>
 
-                        {% if row.customer_type_id == 1 %}
-                            <td>Lead/Prospect</td>
-                        {% elif row.customer_type_id == 2 %}
-                            <td>Cliente Ativo</td>
-                        {% elif row.customer_type_id == 3 %}
-                            <td>Cliente VIP</td>
-                        {% else %}
-                            <td> -- </td>
-                        {% endif %}
-                        <td>{{row.state}}</td>
-                        <td>{{row.contact_name}}</td>
-                        <td>{{row.contact_phone}}</td>
-                        <td>{{row.contact_email}}</td>
-                        <td>
-                            <a href="customers/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
-                            <a href="customers/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
-                        </td>
-                    </tr>
+                            {% if row.customer_type_id == 1 %}
+                                <td>Lead/Prospect</td>
+                            {% elif row.customer_type_id == 2 %}
+                                <td>Cliente Ativo</td>
+                            {% elif row.customer_type_id == 3 %}
+                                <td>Cliente VIP</td>
+                            {% else %}
+                                <td> -- </td>
+                            {% endif %}
+                            <td>{{row.state}}</td>
+                            <td>{{row.contact_name}}</td>
+                            <td>{{row.contact_phone}}</td>
+                            <td>{{row.contact_email}}</td>
+                            <td>
+                                <a href="customers/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
+                                <a href="customers/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
+                            </td>
+                        </tr>
  
  
                 <!-- Modal Editar Cliente-->

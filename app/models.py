@@ -300,3 +300,12 @@ def get_customer_types():
 
     ]
     return customer_types
+
+
+def get_partner_types():
+    partner_types = [
+        [1, "Assistência Técnica"], 
+        [2, "Fornecedor"], 
+        [3, "Representante"],
+    ]
+    return partner_types
