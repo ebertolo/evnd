@@ -7,6 +7,7 @@ from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User
+from app.models import get_customer_types, get_states
 
 
 """ _________________________________________________________________________________________________
@@ -112,7 +113,7 @@ def customers_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
     
     if request.method == "POST":
-        tax_id = request.form["tax_id"]
+        tax_id = request.form["tax_id"] #CNPJ
         customer_type_id = request.form["customer_type_id"]
         name = request.form["name"]
         contact_name = request.form["contact_name"]
@@ -140,7 +141,7 @@ def customers_insert():
 def customers_index():
     """Lista os objetos persistidos no DB"""
     customer_set = Customer.query.all()
-    return render_template("pages/customers.html", page="Clientes", customers = customer_set)
+    return render_template("pages/customers.html", page="Clientes", customers = customer_set, states=get_states(), customer_types=get_customer_types())
 
 
 #Update
@@ -159,7 +160,7 @@ def customers_update():
         customer.contact_email = request.form["contact_email"]
         customer.address_line1 = request.form["address_line1"]
         customer.address_line2 = request.form["address_line2"]
-        customer.number = request.form["nunmber"]
+        customer.number = request.form["number"]
         customer.postal_code = request.form["postal_code"]
         customer.city = request.form["city"]
         customer.state = request.form["state"]
@@ -513,3 +514,5 @@ def service_ticket_delete(id):
 
     flash("Cadastro excluído com sucesso.")
     return redirect(url_for("service_ticket_index"))
+
+

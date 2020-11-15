@@ -16,7 +16,6 @@
             </br>
         </div>
     
-        
         <div class="col md-12">           
             <div class="p-1 table-responsive">
                 <table class="table table-hover table-ouline-dark">
@@ -24,6 +23,7 @@
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Tipo Cliente</th>
+                        <th>UF</th>
                         <th>Nome Contato</th>
                         <th>Telefone Contato</th>
                         <th>Email Contato</th>
@@ -44,7 +44,7 @@
                         {% else %}
                             <td> -- </td>
                         {% endif %}
-                        
+                        <td>{{row.state}}</td>
                         <td>{{row.contact_name}}</td>
                         <td>{{row.contact_phone}}</td>
                         <td>{{row.contact_email}}</td>
@@ -69,27 +69,23 @@
                                 <form action="{{url_for('customers_update')}}" method="POST">
                     
                                     <div class="form-group">
-                                        <label>Nome Empresa Cliente:</label>
-                                        <input type="hidden"  name="id" value="{{row.id}}">
-                                        <input type="text" class="form-control" name="name" value="{{row.name}}">
-                                    </div>
-                        
-                                    <div class="form-group">
                                         <label>CNPJ:</label>
                                         <input type="text" class="form-control" name="tax_id" value="{{row.tax_id}}">
                                     </div>
-
+                               
                                     <div class="form-group">
                                         <label>Tipo Cliente:</label>
                                         <select name="customer_type_id">
-
-                                            {% for item in [[1,"Lead/Prospect"], [2, "Cliente Ativo"], [3, "Cliente Vip"]] %}
-                                            
-                                            <option value="{{item[0]}}" {% if item[0] == row.customer_type_id %} selected {% endif %}>{{item[1]}}</option>
-                                            
-                                            {% endfor %}
-                                            
+                                            {% for item in customer_types %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.customer_type_id %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
                                         </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Nome Empresa Cliente:</label>
+                                        <input type="hidden"  name="id" value="{{row.id}}">
+                                        <input type="text" class="form-control" name="name" value="{{row.name}}">
                                     </div>
 
                                     <div class="form-group">
@@ -106,7 +102,41 @@
                                         <label>Email do Contato:</label>
                                         <input type="email" class="form-control" name="contact_email" value="{{row.contact_email}}">
                                     </div>
-                        
+
+                                    <div class="form-group">
+                                        <label>CEP:</label>
+                                        <input type="text" class="form-control" name="postal_code" value="{{row.postal_code}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Endereço (Rua/Rodovia e Bairro.):</label>
+                                        <input type="text" class="form-control" name="address_line1" value="{{row.address_line1}}">
+                                    </div>
+
+                                     <div class="form-group">
+                                        <label>Número:</label>
+                                        <input type="text" class="form-control" name="number" value="{{row.number}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Endereço (complemento):</label>
+                                        <input type="text" class="form-control" name="address_line2" value="{{row.address_line2}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Cidade:</label>
+                                        <input type="text" class="form-control" name="city" value="{{row.city}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>UF:</label>
+                                        <select name="state">
+                                            {% for item in states %}         
+                                                <option value="{{item[0]}}" {% if item[0] == row.state %} selected {% endif %}>{{item[1]}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
                                     <div class="form-group">
                                         <button class="btn btn-dark btn-sm" type="submit">Salvar <i class="fas fa-save fa-lg"></i></button>   
                                     </div>
@@ -134,29 +164,26 @@
 
                         <div class="modal-body">
                             <form action="{{url_for('customers_insert')}}" method="POST">
+                                
+                                <div class="form-group">
+                                    <label>CNPJ:</label>
+                                    <input type="text" class="form-control" name="tax_id" >
+                                </div>                    
+            
+                                <div class="form-group">
+                                    <label>Tipo Cliente:</label>
+                                    <select name="customer_type_id">
+                                        {% for item in customer_types %}                      
+                                            <option value="{{item[0]}}">{{item[1]}}</option>                                          
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
                                 <div class="form-group">
                                     <label>Nome Empresa Cliente:</label>
                                     <input type="text" class="form-control" name="name" required="1">
                                 </div>
 
-                                <div class="form-group">
-                                    <label>CNPJ:</label>
-                                    <input type="text" class="form-control" name="tax_id" >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Tipo Cliente:</label>
-                                    <select name="customer_type_id">
-
-                                        {% for item in [[1,"Lead/Prospect"], [2, "Cliente Ativo"], [3, "Cliente Vip"]] %}
-                                        
-                                        <option value="{{item[0]}}">{{item[1]}}</option>
-                                        
-                                        {% endfor %}
-                                        
-                                    </select>
-                                </div>
-                
                                 <div class="form-group">
                                     <label>Nome do Contato:</label>
                                     <input type="text" class="form-control" name="contact_name" required="1">
@@ -170,6 +197,40 @@
                                 <div class="form-group"> 
                                     <label>Email do Contato:</label>
                                     <input type="email" class="form-control" name="contact_email">
+                                </div>
+
+                                <div class="form-group"> 
+                                    <label>CEP:</label>
+                                    <input type="text" class="form-control" name="postal_code">
+                                </div>
+
+                                <div class="form-group"> 
+                                    <label>Endereço (Rua/Rodovia e Bairro.):</label>
+                                    <input type="text" class="form-control" name="address_line1">
+                                </div>
+
+                                <div class="form-group"> 
+                                    <label>Número:</label>
+                                    <input type="text" class="form-control" name="number">
+                                </div>
+
+                                <div class="form-group"> 
+                                    <label>Endereço (complemento):</label>
+                                    <input type="text" class="form-control" name="address_line2">
+                                </div>
+
+                                <div class="form-group"> 
+                                    <label>Cidade:</label>
+                                    <input type="text" class="form-control" name="city">
+                                </div>
+
+                                 <div class="form-group">
+                                        <label>UF:</label>
+                                         <select name="state">
+                                            {% for item in states %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>
+                                            {% endfor %}
+                                        </select>
                                 </div>
 
                                 <div class="form-group">

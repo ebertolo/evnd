@@ -251,3 +251,52 @@ class ServiceTicket(db.Model):
 def convert_to_date(str_date):
     """Converte uma string para o formato datetime python suportado pelo SQLAlchemy"""
     return datetime.strptime(str_date, "%d/%m/%Y")
+
+
+def get_states():
+    """Retorna lista de estados do pais com suas siglas"""
+
+    states = [
+        ["SC", "Santa Catarina"],
+        ["RS", "Rio Grande do Sul"],
+        ["PR", "Paraná"],
+
+        ["RJ", "Rio de Janeiro"],
+        ["SP", "São Paulo"],
+        ["MG", "Bahia"],
+        ["ES", "Espírito Santo"],
+
+        ["AM", "Amazonas"],
+        ["RR", "Roraima"],
+        ["RO", "Rondônia"],
+        ["AP", "Amapá"],
+        ["PA", "Pará"],
+        ["AC", "Acre"],
+        ["TO", "Tocantins"],
+
+        ["BA", "Bahia"],
+        ["CE", "Ceará"],
+        ["RN", "Rio Grande do Norte"],
+        ["AL", "Alagoas"],
+        ["PI", "Piaui"],
+        ["MA", "Maranhão"],
+        ["PB", "Paraíba"],
+        ["PE", "Pernambuco"],
+        ["SE", "Sergipe"],
+
+        ["MT", "Mato Grosso"],
+        ["MS", "Mato Grosso do Sul"],
+        ["DF", "Distrito Federal"],
+        ["GO", "Goiás"],
+    ]
+    states.sort()
+    return states
+
+def get_customer_types():
+    customer_types = [
+        [1,"Lead/Prospect"], 
+        [2, "Cliente Ativo"], 
+        [3, "Cliente Vip"],
+
+    ]
+    return customer_types
