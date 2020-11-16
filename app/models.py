@@ -6,6 +6,10 @@ from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
 
+
+""" _________________________________________________________________________________________________
+    Classes a serem persistidas como tabelas através do SQLAlchemy, ORM para o Python e Flask
+""" 
 class Role(db.Model):
     """Model Perfil de Acesso"""
     
@@ -21,7 +25,6 @@ class Role(db.Model):
     def __repr__(self):
         """Retorna o nome da classe"""
         return '<Role %r>' % self.name
-
 
 
 class User(UserMixin, db.Model):
@@ -67,7 +70,6 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return "<User %r>" % self.short_name
-
 
 
 class Customer(db.Model):
@@ -138,7 +140,6 @@ class Product(db.Model):
         return "<Product %r>" % self.name
 
 
-
 class SalesPerson(db.Model):
     """Model Equipe de Vendas"""
 
@@ -158,7 +159,6 @@ class SalesPerson(db.Model):
     def __repr__(self):
         """String padrão que descreve o objeto"""
         return "<SalesPerson %r>" % self.name
-
 
 
 class Partner(db.Model):
@@ -186,6 +186,35 @@ class Partner(db.Model):
         """String padrão que descreve o objeto"""
         return "<Partner %r>" % self.name
 
+
+class ServiceTicket(db.Model):
+    """Model Chamados"""
+
+    __tablename__ = "Service_Ticket"
+    id = db.Column(db.Integer, primary_key=True)
+    id_status = db.Column(db.Integer)
+    id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))        
+    id_product = db.Column(db.Integer, nullable=True)   # Relacionamento fraco, nao usar chave estrangeira
+    id_activity = db.Column(db.Integer, nullable=True)  # Relacionamento fraco, nao usar chave estrangeira
+    id_partner = db.Column(db.Integer, nullable=True) # Relacionamento fraco, nao usar chave estrangeira
+    request_date = db.Column(db.DateTime)
+    done_date = db.Column(db.DateTime, nullable=True)
+    description = db.Column(db.String(500))
+    customer = db.relationship("Customer", back_populates="service_tickets")
+    
+    def __init__(self, id_status, id_customer, id_product, id_activity, id_partner, request_date, done_date, description):
+        """Método Construtor da Classe"""
+        self.id_status = id_status
+        self.id_customer = id_customer
+        self.id_product = id_product
+        self.id_activity = id_activity
+        self.id_partner = id_partner
+        self.request_date = request_date 
+        self.done_date = done_date
+        self.description = description
+                
+    def __repr__(self):
+        return "<ServiceTicket %r>" % str(self.id)
 
 
 class Activity(db.Model):
@@ -220,39 +249,9 @@ class Activity(db.Model):
 
 
 
-class ServiceTicket(db.Model):
-    """Model Chamados"""
-
-    __tablename__ = "Service_Ticket"
-    id = db.Column(db.Integer, primary_key=True)
-    id_status = db.Column(db.Integer)
-    id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))        
-    id_product = db.Column(db.Integer, nullable=True)   # Relacionamento fraco, nao usar chave estrangeira
-    id_activity = db.Column(db.Integer, nullable=True)  # Relacionamento fraco, nao usar chave estrangeira
-    id_partner = db.Column(db.Integer, nullable=True) # Relacionamento fraco, nao usar chave estrangeira
-    request_date = db.Column(db.DateTime)
-    done_date = db.Column(db.DateTime, nullable=True)
-    description = db.Column(db.String(500))
-    customer = db.relationship("Customer", back_populates="service_tickets")
-    
-    def __init__(self, id_status, id_customer, id_product, id_activity, done_date, description, request_date):
-        """Método Construtor da Classe"""
-        self.id_status = id_status
-        self.id_customer = id_customer
-        self.id_product = id_product
-        self.id_activity = id_activity
-        self.request_date = convert_to_date(request_date) 
-        self.done_date = convert_to_date(done_date) if not done_date is None else None
-        self.description = description
-                
-    def __repr__(self):
-        return "<ServiceTicket %r>" % str(self.id)
-
-def convert_to_date(str_date):
-    """Converte uma string para o formato datetime python suportado pelo SQLAlchemy"""
-    return datetime.strptime(str_date, "%d/%m/%Y")
-
-
+""" _________________________________________________________________________________________________
+    Tabelas a serem mantidas apenas na Memória no formato de listas10
+""" 
 def get_states():
     """Retorna lista de estados do pais com suas siglas"""
 
@@ -301,11 +300,49 @@ def get_customer_types():
     ]
     return customer_types
 
-
 def get_partner_types():
     partner_types = [
-        [1, "Assistência Técnica"], 
-        [2, "Fornecedor"], 
-        [3, "Representante"],
+        [0, "Assistência Técnica"], 
+        [1, "Fornecedor"], 
+        [2, "Representante"],
     ]
     return partner_types
+
+def get_service_ticket_status():
+    service_ticket_status = [
+        [0, "Criado"], 
+        [1, "Atrasada"], 
+        [2, "Pendente de Parceiro"],
+        [3, "Pendente do Cliente"],
+        [4, "Executando"],
+        [5, "Concluída"],
+    ]
+    return service_ticket_status
+
+def get_activity_types():
+    activity_types = [
+        [0, "Telefonema"], 
+        [1, "Reunião"], 
+        [2, "Visita"],
+        [3, "Oferta"],
+        [4, "Email"],
+    ]
+    return activity_types
+
+def get_activity_status():
+    activity_status = [
+        [0, "Agendada"], 
+        [1, "Atrasada"], 
+        [2, "Pendente de Parceiro"],
+        [3, "Pendente do Cliente"],
+        [4, "Executando"],
+        [5, "Concluída"],
+    ]
+    return activity_status
+
+""" _________________________________________________________________________________________________
+    Funções Auxiliares para conversão e formatação de dados
+""" 
+def convert_to_date(str_date):
+    """Converte uma string para o formato datetime python suportado pelo SQLAlchemy"""
+    return datetime.strptime(str_date, "%d/%m/%Y")

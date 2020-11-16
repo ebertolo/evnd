@@ -6,8 +6,8 @@ from flask import render_template, send_from_directory, session, request, redire
 from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
-from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, get_partner_types
-from app.models import get_customer_types, get_states, get_partner_types
+from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_partner_types, get_service_ticket_status
+from app.models import get_customer_types, get_states, get_partner_types, get_activity_types
 from sqlalchemy.exc import IntegrityError
 
 
@@ -447,6 +447,81 @@ def partner_delete(id):
 
 
 """ _________________________________________________________________________________________________
+    Cadastro Chamados do CRM  - CRUD
+""" 
+#Create
+@app.route("/service-tickets/insert", methods = ["POST"])
+@login_required
+def service_ticket_insert():
+
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    if request.method == "POST":
+        id_status = request.form["id_status"]
+        id_customer = request.form["id_customer"]
+        id_product = request.form["id_product"]
+        id_activity = request.form["id_activity"]
+        id_partner = request.form["id_partner"]
+        request_date = convert_to_date(request.form["request_date"])
+        done_date = convert_to_date(request.form["request_date"]) if request.form["request_date"] else None
+        description = request.form["description"]
+
+        serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
+                          done_date, request_date, description)
+        db.session.add(serviceticket)
+        db.session.commit()
+
+        flash("Novo cadastro incluído com sucesso")
+        return redirect(url_for("service_ticket_index"))
+
+
+#Read
+@app.route("/service-tickets")
+@login_required
+def service_ticket_index():
+    """Lista os objetos persistidos no DB"""
+    serviceticket_set = ServiceTicket.query.all()
+    return render_template("pages/service-tickets.html", page="Chamados", servicetickets = serviceticket_set, \
+                            customers_list=get_customers_list(), products_list=get_products_list(), \
+                            activities_list=get_activities_list(), partners_list=get_partners_list(), \
+                            service_ticket_status=get_service_ticket_status(), partner_types=get_partner_types(),
+                            activity_types=get_activity_types())
+
+
+#Update
+@app.route("/service-tickets/update", methods = ["GET", "POST"])
+@login_required
+def service_ticket_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    if request.method == "POST":
+        serviceticket = ServiceTicket.query.get(request.form.get("id"))
+        serviceticket.id_status = request.form["id_status"]
+        serviceticket.id_customer = request.form["id_customer"]
+        serviceticket.id_product = request.form["id_product"]
+        serviceticket.id_activity = request.form["id_activity"]
+        serviceticket.id_partner = request.form["id_partner"]
+        serviceticket.request_date = convert_to_date(request.form["request_date"])
+        serviceticket.done_date = convert_to_date(request.form["done_date"])
+        serviceticket.description = request.form["description"]
+        db.session.commit() 
+
+        flash("Cadastro atualizado com sucesso.")
+        return redirect(url_for("service_ticket_index"))
+
+
+#Delete
+@app.route("/service-tickets/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def service_ticket_delete(id):
+    serviceticket = ServiceTicket.query.get(id)
+    db.session.delete(serviceticket)
+    db.session.commit()
+    
+    flash("Cadastro excluído com sucesso.")
+    return redirect(url_for("service_ticket_index"))
+
+
+
+""" _________________________________________________________________________________________________
     Cadastro Atividades do CRM  - CRUD
 """ 
 #Create
@@ -516,74 +591,18 @@ def activities_delete(id):
     return redirect(url_for("activities_index"))
 
 
-""" _________________________________________________________________________________________________
-    Cadastro Chamados do CRM  - CRUD
-""" 
-#Create
-@app.route("/service-tickets/insert", methods = ["POST"])
-@login_required
-def service_ticket_insert():
+def get_customers_list():
+    customers = [[0, "--"]] + [[customer.id, customer.name] for customer in Customer.query.all()]
+    return customers
 
-    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
-    if request.method == "POST":
-        id_status = request.form["id_status"]
-        id_customer = request.form["id_customer"]
-        id_product = request.form["id_product"]
-        id_activity = request.form["id_activity"]
-        id_partner = request.form["id_partner"]
-        requested_date = request.form["requested_date"]
-        done_date = request.form["done_date"]
-        description = request.form["description"]
+def get_products_list():
+    products = [[0, "--"]] + [[product.id, product.name] for product in Product.query.all()]
+    return products
 
-        serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
-                          requested_date, done_date, description)
-        db.session.add(serviceticket)
-        db.session.commit()
+def get_partners_list():
+    partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.all()]
+    return partners
 
-        flash("Novo cadastro incluído com sucesso")
-        return redirect(url_for("service_ticket_index"))
-
-
-#Read
-@app.route("/service-tickets")
-@login_required
-def service_ticket_index():
-    """Lista os objetos persistidos no DB"""
-    serviceticket_set = ServiceTicket.query.all()
-    return render_template("pages/service-ticket.html", page="Chamados", servicetickets = serviceticket_set)
-
-
-#Update
-@app.route("/service-tickets/update", methods = ["GET", "POST"])
-@login_required
-def service_ticket_update():
-    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
-    if request.method == "POST":
-        serviceticket = ServiceTicket.query.get(request.form.get("id"))
-        serviceticket.id_status = request.form["id_status"]
-        serviceticket.id_customer = request.form["id_customer"]
-        serviceticket.id_product = request.form["id_product"]
-        serviceticket.id_activity = request.form["id_activity"]
-        serviceticket.id_partner = request.form["id_partner"]
-        serviceticket.requested_date = request.form["requested_date"]
-        serviceticket.done_date = request.form["done_date"]
-        serviceticket.description = request.form["description"]
-        db.session.commit() 
-
-        flash("Cadastro atualizado com sucesso.")
-        return redirect(url_for("service_ticket_index"))
-
-
-#Delete
-@app.route("/service-tickets/delete/<id>/", methods = ["GET", "POST"])
-@login_required
-def service_ticket_delete(id):
-    serviceticket = ServiceTicket.query.get(id)
-    db.session.delete(serviceticket)
-    db.session.commit()
-    
-
-    flash("Cadastro excluído com sucesso.")
-    return redirect(url_for("service_ticket_index"))
-
-
+def get_activities_list():
+    activities = [[0, "--", "--"]] + [[activity.id, str(activity.id).zfill(4) + " - " + activity.sales_person.name, activity.id_activity_type] for activity in Activity.query.all()]
+    return activities

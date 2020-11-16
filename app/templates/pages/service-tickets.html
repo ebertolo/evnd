@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %} {{ super() }} {{page}} {% endblock %}
+
+{% block page_content %}
+<div class="page-header dark">
+    <h3>{{page}}</h3>
+</div>
+
+<div class="container">
+
+    <div class="row">
+        <div class="text-right">
+            <button type="button"  class="btn btn-dark btn-sm" data-toggle="modal" data-toggle="tooltip" title="Cadastrar novo Parceiro." data-target="#mymodal"> Novo Chamado <i class="fas fa-plus-circle fa-lg"></i></button>
+            </br>
+            </br>
+        </div>
+    
+        <div class="col md-12">           
+            <div class="p-1 table-responsive">
+                <table class="table table-hover table-ouline-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Cliente</th>
+                        <th>Parceiro</th>
+                        <th>Atividade/Vendedor</th>
+                        <th>Data Criação</th>
+                        <th>Data Conclusão</th>
+                        <th>Ação</th>   
+                    </tr>
+ 
+                   {% for row in servicetickets %}
+                        <tr>
+                            <td>{{row.id}}</td>
+                            <td>{{service_ticket_status[row.id_status][1] or "--"}}</td>
+                            <td>{{customers_list[row.id_customer][1] or "--"}}</td>
+                            <td>{{partners_list[row.id_partner][1] or "--"}}</td>
+                            <td>{{activities_list[row.id_activity][1] or "--"}}</td>
+                            <td>{{row.request_date.strftime("%d/%m/%Y")}}</td>
+                            <td>{{row.done_date.strftime("%d/%m/%Y") or "--"}}</td>
+                            <td>
+                                <a href="service-tickets/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
+                                <a href="service-tickets/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
+                            </td>
+                        </tr>
+ 
+                <!-- Modal Editar Parceiro-->
+                <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                    
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Atualizar Chamado</h4>
+                            </div>
+                
+                            <div class="modal-body">
+                        
+                                <form action="{{url_for('service_ticket_update')}}" method="POST">
+
+                                    <div class="form-group">
+                                        <label>Status:</label>
+                                        <input type="hidden"  name="id" value="{{row.id}}">
+                                        <select name="id_status">
+                                            {% for item in service_ticket_status %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.id_status %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Cliente:</label>
+                                        <select name="id_customer">
+                                            {% for item in customers_list %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.id_customer %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+                               
+                                    <div class="form-group">
+                                        <label>Produto:</label>
+                                        <select name="id_product">
+                                            {% for item in products_list %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.id_product %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Atividade que originou o chamado:</label>
+                                        <select name="id_activity">
+                                            {% for item in activities_list %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.id_activity %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Parceiro Acionado:</label>
+                                        <select name="id_partner">
+                                            {% for item in partners_list %}
+                                                <option value="{{item[0]}}" {% if item[0] == row.id_partner %} selected {% endif %}>{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Data Criação:</label>
+                                        <input type="text" class="form-control" name="request_date" value="{{row.request_date.strftime("%d/%m/%Y")}}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Data Conclusão:</label>
+                                        <input type="text" class="form-control" name="done_date" value="{{row.done_date.strftime("%d/%m/%Y")}}">
+                                    </div>
+                        
+                                    <div class="form-group">
+                                        <label>Descrição:</label>
+                                        <input type="text" class="form-control" name="description" value="{{row.description}}">
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <button class="btn btn-dark btn-sm" type="submit">Salvar <i class="fas fa-save fa-lg"></i></button>   
+                                    </div>
+                                </form>
+                            </div>
+                    
+                            <div class="modal-footer">
+                                <button type="button" data-toggle="tooltip" data-placement="bottom" title="Fechar janela." class="close" data-dismiss="modal">&times;</button>
+                            </div>    
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </table>
+            </div>
+ 
+            <!-- Modal Novo Parceiro-->
+            <div id="mymodal" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Novo Chamado</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <form action="{{url_for('service_ticket_insert')}}" method="POST">
+                               
+                                    <div class="form-group">
+                                        <label>Status:</label>
+                                        <select name="id_status">
+                                            {% for item in service_ticket_status %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Cliente:</label>
+                                        <select name="id_customer">
+                                            {% for item in customers_list %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+                               
+                                    <div class="form-group">
+                                        <label>Produto:</label>
+                                        <select name="id_product">
+                                            {% for item in products_list %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Atividade que originou o chamado:</label>
+                                        <select name="id_activity">
+                                            {% for item in activities_list %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Parceiro Acionado:</label>
+                                        <select name="id_partner">
+                                            {% for item in partners_list %}
+                                                <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                            {% endfor %}      
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Data Criação:</label>
+                                        <input type="text" class="form-control" name="request_date">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Data Conclusão:</label>
+                                        <input type="text" class="form-control" name="done_date">
+                                    </div>
+                        
+                                    <div class="form-group">
+                                        <label>Descrição:</label>
+                                        <input type="text" class="form-control" name="description">
+                                    </div>
+
+
+                                <div class="form-group">
+                                    <button class="btn btn-dark btn-sm" type="submit">Salvar <i class="fas fa-save fa-lg"></i></button> 
+                                </div>
+                            </form>
+                        </div>
+            
+                        <div class="modal-footer">
+                            <button type="button" data-toggle="tooltip" data-placement="bottom" title="Fechar janela." class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+{% endblock %}
