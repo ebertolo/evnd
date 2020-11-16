@@ -467,7 +467,7 @@ def service_ticket_insert():
         description = request.form["description"]
 
         serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
-                          done_date, request_date, description)
+                          request_date, done_date, description)
         db.session.add(serviceticket)
         db.session.commit()
 
