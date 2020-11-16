@@ -1,4 +1,5 @@
 #/usr/bin/python3
+from operator import ge
 import os
 from re import S
 from urllib.parse import urlparse, urljoin
@@ -6,7 +7,7 @@ from flask import render_template, send_from_directory, session, request, redire
 from flask_login import login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
-from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_partner_types, get_service_ticket_status
+from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_activity_status, get_partner_types, get_service_ticket_status
 from app.models import get_customer_types, get_states, get_partner_types, get_activity_types
 from sqlalchemy.exc import IntegrityError
 
@@ -367,7 +368,7 @@ def sales_person_delete(id):
 #Create
 @app.route("/partners/insert", methods = ["POST"])
 @login_required
-def partner_insert():
+def partners_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
 
     message = "Novo cadastro incluído com sucesso"
@@ -391,12 +392,12 @@ def partner_insert():
             db.session.commit()
             
         flash(message)
-        return redirect(url_for("partner_index"))
+        return redirect(url_for("partners_index"))
 
 #Read
 @app.route("/partners")
 @login_required
-def partner_index():
+def partners_index():
     """Lista os objetos persistidos no DB"""
     partner_set = Partner.query.all()
     return render_template("pages/partners.html", page="Parceiros", partner_types=get_partner_types(), partners = partner_set)
@@ -405,7 +406,7 @@ def partner_index():
 #Update
 @app.route("/partners/update", methods = ["GET", "POST"])
 @login_required
-def partner_update():
+def partners_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
 
     message = "Cadastro atualizado com sucesso."
@@ -425,13 +426,13 @@ def partner_update():
             message = "Dados incorretos. CNPJ, Email ou Nome em uso por outro cadastro."
         
         flash(message)
-        return redirect(url_for("partner_index"))
+        return redirect(url_for("partners_index"))
 
 
 #Delete
 @app.route("/partners/delete/<id>/", methods = ["GET", "POST"])
 @login_required
-def partner_delete(id):
+def partners_delete(id):
     message="Cadastro excluído com sucesso."
     partner = Partner.query.get(id)
     db.session.delete(partner)
@@ -442,7 +443,7 @@ def partner_delete(id):
     message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
-    return redirect(url_for("partner_index"))
+    return redirect(url_for("partners_index"))
 
 
 
@@ -462,7 +463,7 @@ def service_ticket_insert():
         id_activity = request.form["id_activity"]
         id_partner = request.form["id_partner"]
         request_date = convert_to_date(request.form["request_date"])
-        done_date = convert_to_date(request.form["request_date"]) if request.form["request_date"] else None
+        done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         description = request.form["description"]
 
         serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
@@ -500,7 +501,7 @@ def service_ticket_update():
         serviceticket.id_activity = request.form["id_activity"]
         serviceticket.id_partner = request.form["id_partner"]
         serviceticket.request_date = convert_to_date(request.form["request_date"])
-        serviceticket.done_date = convert_to_date(request.form["done_date"])
+        serviceticket.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         serviceticket.description = request.form["description"]
         db.session.commit() 
 
@@ -525,7 +526,7 @@ def service_ticket_delete(id):
     Cadastro Atividades do CRM  - CRUD
 """ 
 #Create
-@app.route("/actvities/insert", methods = ["POST"])
+@app.route("/activities/insert", methods = ["POST"])
 @login_required
 def activities_insert():
 
@@ -536,13 +537,13 @@ def activities_insert():
         id_customer = request.form["id_customer"]
         id_sales_person = request.form["id_sales_person"]
         id_product = request.form["id_product"]
-        planned_date = request.form["planned_date"]
-        done_date = request.form["done_date"]
+        planned_date = convert_to_date(request.form["planned_date"])
+        done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         description = request.form["description"]
 
-        partner = Partner(id_status, id_activity_type, id_customer, id_sales_person, id_product, \
+        activity = Activity(id_status, id_activity_type, id_customer, id_sales_person, id_product, \
                           planned_date, done_date, description)
-        db.session.add(partner)
+        db.session.add(activity)
         db.session.commit()
 
         flash("Novo cadastro incluído com sucesso")
@@ -550,16 +551,19 @@ def activities_insert():
 
 
 #Read
-@app.route("/actvities")
+@app.route("/activities")
 @login_required
 def activities_index():
     """Lista os objetos persistidos no DB"""
     activity_set = Activity.query.all()
-    return render_template("pages/activities.html", page="Atividades", activities = activity_set)
+    return render_template("pages/activities.html", page="Atividades", activities = activity_set, \
+                            activity_status=get_activity_status(), activity_types=get_activity_types(), \
+                            customers_list=get_customers_list(), salesperson_list=get_salesperson_list(), \
+                            products_list=get_products_list())
 
 
 #Update
-@app.route("/actvities/update", methods = ["GET", "POST"])
+@app.route("/activities/update", methods = ["GET", "POST"])
 @login_required
 def activities_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
@@ -570,8 +574,8 @@ def activities_update():
         activity.id_customer = request.form["id_customer"]
         activity.id_sales_person = request.form["id_sales_person"]
         activity.id_product = request.form["id_product"]
-        activity.planned_date = request.form["planned_date"]
-        activity.done_date = request.form["done_date"]
+        activity.planned_date = convert_to_date(request.form["planned_date"])
+        activity.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         activity.description = request.form["description"]
         db.session.commit() 
 
@@ -580,7 +584,7 @@ def activities_update():
 
 
 #Delete
-@app.route("/actvities/delete/<id>/", methods = ["GET", "POST"])
+@app.route("/activities/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def activities_delete(id):
     activity = Activity.query.get(id)
@@ -590,6 +594,9 @@ def activities_delete(id):
     flash("Cadastro excluído com sucesso.")
     return redirect(url_for("activities_index"))
 
+def get_salesperson_list():
+    salesteam = [[0, "--"]]+ [[salesperson.id, salesperson.name] for salesperson in SalesPerson.query.all()]
+    return salesteam
 
 def get_customers_list():
     customers = [[0, "--"]] + [[customer.id, customer.name] for customer in Customer.query.all()]
@@ -604,5 +611,5 @@ def get_partners_list():
     return partners
 
 def get_activities_list():
-    activities = [[0, "--", "--"]] + [[activity.id, str(activity.id).zfill(4) + " - " + activity.sales_person.name, activity.id_activity_type] for activity in Activity.query.all()]
+    activities = [[0, "--", "--"]] + [[activity.id, str(activity.id).zfill(4) + " - " + activity.sales_person.name] for activity in Activity.query.all()]
     return activities

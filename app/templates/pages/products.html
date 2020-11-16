@@ -63,13 +63,13 @@
 
                                             <div class="form-group">
                                                 <label>Nome Produto:</label>
-                                                <input type="hidden"  name="id" value="{{row.id}}">
+                                                <input type="hidden"  name="id" value="{{row.id}}" required="1">
                                                 <input type="text" class="form-control" name="name" value="{{row.name}}">
                                             </div>
 
                                             <div class="form-group">
                                                 <label>Descrição:</label>
-                                                <input type="text" class="form-control" name="info" value="{{row.info}}">
+                                                <input type="text" class="form-control" name="info" value="{{row.info}}" required="1">
                                             </div>
                                 
                                             <div class="form-group">
@@ -79,12 +79,12 @@
 
                                             <div class="form-group">
                                                 <label>Categoria (nome curto para relatórios):</label>
-                                                <input type="text" class="form-control" name="group_name_short" value="{{row.group_name_short}}">
+                                                <input type="text" class="form-control" name="group_name_short" value="{{row.group_name_short}}" required="1">
                                             </div>
 
                                             <div class="form-group">
                                                 <label>Categoria (nome longo):</label>
-                                                <input type="text" class="form-control" name="group_name_long" value="{{row.group_name_long}}">
+                                                <input type="text" class="form-control" name="group_name_long" value="{{row.group_name_long}}" required="1">
                                             </div>
                                 
                                             <div class="form-group">

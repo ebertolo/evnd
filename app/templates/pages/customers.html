@@ -61,7 +61,7 @@
                     
                                     <div class="form-group">
                                         <label>CNPJ:</label>
-                                        <input type="text" class="form-control" name="tax_id" value="{{row.tax_id}}">
+                                        <input type="text" class="form-control" name="tax_id" value="{{row.tax_id}}" required="1">
                                     </div>
                                
                                     <div class="form-group">
@@ -76,22 +76,22 @@
                                     <div class="form-group">
                                         <label>Nome Empresa Cliente:</label>
                                         <input type="hidden"  name="id" value="{{row.id}}">
-                                        <input type="text" class="form-control" name="name" value="{{row.name}}">
+                                        <input type="text" class="form-control" name="name" value="{{row.name}}" required="1">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Nome do Contato:</label>
-                                        <input type="text" class="form-control" name="contact_name" value="{{row.contact_name}}">
+                                        <input type="text" class="form-control" name="contact_name" value="{{row.contact_name}}" required="1">
                                     </div>
                         
                                     <div class="form-group">
                                         <label>Telefone do Contato:</label>
-                                        <input type="text" class="form-control" name="contact_phone" value="{{row.contact_phone}}">
+                                        <input type="text" class="form-control" name="contact_phone" value="{{row.contact_phone}}" required="1">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Email do Contato:</label>
-                                        <input type="email" class="form-control" name="contact_email" value="{{row.contact_email}}">
+                                        <input type="email" class="form-control" name="contact_email" value="{{row.contact_email}}" required="1">
                                     </div>
 
                                     <div class="form-group">
@@ -116,7 +116,7 @@
 
                                     <div class="form-group">
                                         <label>Cidade:</label>
-                                        <input type="text" class="form-control" name="city" value="{{row.city}}">
+                                        <input type="text" class="form-control" name="city" value="{{row.city}}" required="1">
                                     </div>
 
                                     <div class="form-group">
@@ -158,7 +158,7 @@
                                 
                                 <div class="form-group">
                                     <label>CNPJ:</label>
-                                    <input type="text" class="form-control" name="tax_id" >
+                                    <input type="text" class="form-control" name="tax_id" required="1">
                                 </div>                    
             
                                 <div class="form-group">
@@ -187,7 +187,7 @@
 
                                 <div class="form-group"> 
                                     <label>Email do Contato:</label>
-                                    <input type="email" class="form-control" name="contact_email">
+                                    <input type="email" class="form-control" name="contact_email" required="1">
                                 </div>
 
                                 <div class="form-group"> 
@@ -212,7 +212,7 @@
 
                                 <div class="form-group"> 
                                     <label>Cidade:</label>
-                                    <input type="text" class="form-control" name="city">
+                                    <input type="text" class="form-control" name="city" required="1">
                                 </div>
 
                                  <div class="form-group">

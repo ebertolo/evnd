@@ -223,7 +223,7 @@ class Activity(db.Model):
     __tablename__ = "Activity"
     id = db.Column(db.Integer, primary_key=True)
     id_status = db.Column(db.Integer)
-    id_activity_type = db.Column(db.String(50))
+    id_activity_type = db.Column(db.Integer)
     id_customer = db.Column(db.Integer, db.ForeignKey("Customer.id"))
     id_sales_person = db.Column(db.Integer, db.ForeignKey("Sales_Person.id"))
     id_product = db.Column(db.Integer, nullable=True)
@@ -233,15 +233,15 @@ class Activity(db.Model):
     sales_person = db.relationship("SalesPerson", back_populates="activities")
     customer = db.relationship("Customer", back_populates="activities")
 
-    def __init__(self, id_status, id_activity_type, id_customer, id_sales_person, id_product, done_date, description, planned_date):
+    def __init__(self, id_status, id_activity_type, id_customer, id_sales_person, id_product, planned_date, done_date, description):
         """Método Construtor da Classe"""
         self.id_status = id_status
         self.id_activity_type = id_activity_type
         self.id_customer = id_customer
         self.id_sales_person = id_sales_person
         self.id_product = id_product 
-        self.planned_date = convert_to_date(planned_date)
-        self.done_date = convert_to_date(done_date) if not done_date is None else None
+        self.planned_date = planned_date
+        self.done_date = done_date
         self.description = description
 
     def __repr__(self):
@@ -321,11 +321,11 @@ def get_service_ticket_status():
 
 def get_activity_types():
     activity_types = [
-        [0, "Telefonema"], 
-        [1, "Reunião"], 
-        [2, "Visita"],
-        [3, "Oferta"],
-        [4, "Email"],
+        ["0", "Telefonema"], 
+        ["1", "Reunião"], 
+        ["2", "Visita"],
+        ["3", "Oferta"],
+        ["4", "Email"],
     ]
     return activity_types
 

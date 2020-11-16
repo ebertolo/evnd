@@ -54,7 +54,7 @@
                 
                             <div class="modal-body">
                         
-                                <form action="{{url_for('partner_update')}}" method="POST">
+                                <form action="{{url_for('partners_update')}}" method="POST">
                     
                                     <div class="form-group">
                                         <input type="hidden"  name="id" value="{{row.id}}">
@@ -117,7 +117,7 @@
                         </div>
 
                         <div class="modal-body">
-                            <form action="{{url_for('partner_insert')}}" method="POST">
+                            <form action="{{url_for('partners_insert')}}" method="POST">
                                 <div class="form-group">
                                     <label>CNPJ:</label>
                                     <input type="text" class="form-control" name="tax_id"  required="1">
