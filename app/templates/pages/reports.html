@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %} {{ super() }} {{page}} {% endblock %}
+
+{% block page_content %}
+<div class="page-header dark">
+    <h3>{{page}}</h3>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!--
+        <div class="text-right">
+            <button type="button"  class="btn btn-dark btn-sm" data-toggle="modal" data-toggle="tooltip" title="Cadastrar novo Parceiro." data-target="#mymodal"> Novo Parceiro de Negócios <i class="fas fa-plus-circle fa-lg"></i></button>
+            </br>
+            </br>
+        </div>
+        -->
+        <div class="col md-12">           
+            <div class="p-1 table-responsive">
+                <table class="table table-hover table-ouline-dark">
+                    <tr>
+                        <th>Id Cliente</th>
+                        <th>Cliente</th>
+                        <th>UF</th>
+                        <th>Total de Chamados</th>
+                        <th>Ação</th>
+                    </tr>
+ 
+                   {% for id_customer, total_tickets in servicetickets %}
+                        <tr>
+                            <td>{{id_customer}}</td>
+                            <td>{{customers_list[id_customer][1]}}</td>
+                            <td>{{customers_list[id_customer][2]}}</td>
+                            <td>{{total_tickets}}</td>
+                            <td>
+                                <a href="service-tickets/list-by-customer/{{id_customer}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{id_customer}}"><i class="fas fa-pen-square fa-lg"></i></a>
+                            </td>
+                        </tr>
+ 
+                        <!-- Modal Visualizar Chamados por Cliente-->
+                        <div id="modaledit{{id_customer}}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+                            
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Lista de Chamados</h4>
+                                    </div>
+                        
+                                    <div class="modal-body">            
+                                        <form action="{{url_for('partners_update')}}" method="POST">
+                                            <span>Lista de Chamados</span>
+                                        </form>
+                                    </div>
+                            
+                                    <div class="modal-footer">
+                                        <button type="button" data-toggle="tooltip" data-placement="bottom" title="Fechar janela." class="close" data-dismiss="modal">&times;</button>
+                                    </div>    
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div> 
+</div>
+{% endblock %}

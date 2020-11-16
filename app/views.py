@@ -9,7 +9,9 @@ from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_activity_status, get_partner_types, get_service_ticket_status
 from app.models import get_customer_types, get_states, get_partner_types, get_activity_types
+from sqlalchemy import func, desc
 from sqlalchemy.exc import IntegrityError
+
 
 
 """ _________________________________________________________________________________________________
@@ -520,7 +522,16 @@ def service_ticket_delete(id):
     flash("Cadastro excluído com sucesso.")
     return redirect(url_for("service_ticket_index"))
 
+#Read
+@app.route("/service-tickets/rpt")
+@login_required
+def service_ticket_rpt():
+    """Lista os objetos persistidos no DB"""
 
+    serviceticket_set = db.session.query(ServiceTicket.id_customer, func.count(ServiceTicket.id).label("Total")).\
+                        group_by(ServiceTicket.id_customer).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Relatórios", servicetickets = serviceticket_set, \
+                            customers_list=get_customers_list())
 
 """ _________________________________________________________________________________________________
     Cadastro Atividades do CRM  - CRUD
@@ -599,7 +610,7 @@ def get_salesperson_list():
     return salesteam
 
 def get_customers_list():
-    customers = [[0, "--"]] + [[customer.id, customer.name] for customer in Customer.query.all()]
+    customers = [[0, "--"]] + [[customer.id, customer.name, customer.state] for customer in Customer.query.all()]
     return customers
 
 def get_products_list():
