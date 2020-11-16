@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, get_partner_types
 from app.models import get_customer_types, get_states, get_partner_types
+from sqlalchemy.exc import IntegrityError
 
 
 """ _________________________________________________________________________________________________
@@ -112,6 +113,7 @@ def is_safe_url(target):
 def customers_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
     
+    message="Novo cadastro incluído com sucesso"
     if request.method == "POST":
         tax_id = request.form["tax_id"] #CNPJ
         customer_type_id = request.form["customer_type_id"]
@@ -126,12 +128,19 @@ def customers_insert():
         city = request.form["city"]
         state = request.form["state"]
 
-        customer = Customer(tax_id, customer_type_id, name, contact_name, contact_phone, contact_email, \
-            address_line1, address_line2, number, postal_code, city, state)
-        db.session.add(customer)
-        db.session.commit()
+        if Customer.query.filter_by(name = name).first():
+            message = "Já existe um cliente no cadastro com esse nome."
+        elif Customer.query.filter_by(contact_email = contact_email).first():
+            message = "Já existe um cliente no cadastro com este email de contato."
+        elif Customer.query.filter_by(tax_id = tax_id).first():
+            message = "Já existe um cliente no cadastro com esse CNPJ"
+        else:
+            customer = Customer(tax_id, customer_type_id, name, contact_name, contact_phone, contact_email, \
+                address_line1, address_line2, number, postal_code, city, state)
+            db.session.add(customer)
+            db.session.commit()
 
-        flash("Novo cadastro incluído com sucesso")
+        flash(message)
         return redirect(url_for("customers_index"))
 
 
@@ -148,8 +157,9 @@ def customers_index():
 @app.route("/customers/update", methods = ["GET","POST"])
 @login_required
 def customers_update():
-    
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message="Cadastro atualizado com sucesso."
     if request.method == "POST":
         customer = Customer.query.get(request.form.get("id"))
         customer.name = request.form["name"]
@@ -164,9 +174,14 @@ def customers_update():
         customer.postal_code = request.form["postal_code"]
         customer.city = request.form["city"]
         customer.state = request.form["state"]
-        db.session.commit()
 
-        flash("Cadastro atualizado com sucesso.")
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Dados incorretos, novo nome, email ou CNPJ em uso por outro cadastro." 
+
+        flash(message)
         return redirect(url_for("customers_index"))
 
 
@@ -174,12 +189,16 @@ def customers_update():
 @app.route("/customers/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def customers_delete(id):
-    "Exclui objeto selecionado"
+    message="Cadastro excluído com sucesso."
     customer = Customer.query.get(id)
     db.session.delete(customer)
-    db.session.commit()
+    try:
+        db.session.commit() 
+    except IntegrityError:
+        db.session.rollback()
+    message = "Não é possivel excluir esse registro pois está em uso."
 
-    flash("Cadastro excluído com successo.")
+    flash(message)
     return redirect(url_for("customers_index"))
 
 
@@ -191,8 +210,8 @@ def customers_delete(id):
 @app.route("/products/insert", methods = ["POST"])
 @login_required
 def products_insert():
-
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+    message="Novo cadastro incluído com sucesso"
     if request.method == "POST":
         code =  request.form["code"]
         name = request.form["name"]
@@ -201,11 +220,14 @@ def products_insert():
         group_name_short = request.form["group_name_short"]
         group_name_long = request.form["group_name_long"]
 
-        product = Product(code, name, info, html_link, group_name_short, group_name_long)
-        db.session.add(product)
-        db.session.commit()
+        if Product.query.filter_by(name = name).first():
+            message = "Já existe um produto no cadastro com esse nome"
+        else:
+            product = Product(code, name, info, html_link, group_name_short, group_name_long)
+            db.session.add(product)
+            db.session.commit()
 
-        flash("Novo cadastro incluído com sucesso")
+        flash(message)
         return redirect(url_for("products_index"))
 
 
@@ -223,6 +245,8 @@ def products_index():
 @login_required
 def products_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
         product = Product.query.get(request.form.get("id"))
         product.code = request.form["code"]
@@ -231,9 +255,14 @@ def products_update():
         product.html_link = request.form["html_link"]
         product.group_name_short = request.form["group_name_short"]
         product.group_name_long =  request.form["group_name_long"]
-        db.session.commit() 
 
-        flash("Cadastro atualizado com sucesso.")
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Novo nome em uso por outro cadastro." 
+
+        flash(message)
         return redirect(url_for("products_index"))
 
 
@@ -241,11 +270,17 @@ def products_update():
 @app.route("/products/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def products_delete(id):
+    message = "Cadastro excluído com successo."
     product = Product.query.get(id)
     db.session.delete(product)
-    db.session.commit()
 
-    flash("Cadastro excluído com successo.")
+    try:
+        db.session.commit() 
+    except IntegrityError:
+        db.session.rollback()
+    message = "Não é possivel excluir esse registro pois está em uso."
+
+    flash(message)
     return redirect(url_for("products_index"))
 
 
@@ -257,18 +292,22 @@ def products_delete(id):
 @app.route("/sales-person/insert", methods = ["POST"])
 @login_required
 def sales_person_insert():
-
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    message="Novo cadastro incluído com sucesso"
     if request.method == "POST":
         name = request.form["name"]
         phone = request.form["phone"]
         email = request.form["email"]
 
-        salesperson = SalesPerson(name, phone, email)
-        db.session.add(salesperson)
-        db.session.commit()
+        if SalesPerson.query.filter_by(email = email).first():
+            message = "Já existe um parceiro no cadastro com esse email"
+        else:
+            salesperson = SalesPerson(name, phone, email)
+            db.session.add(salesperson)
+            db.session.commit()
 
-        flash("Novo cadastro incluído com sucesso")
+        flash(message)
         return redirect(url_for("sales_person_index"))
 
 
@@ -286,14 +325,21 @@ def sales_person_index():
 @login_required
 def sales_person_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
         salesperson = SalesPerson.query.get(request.form.get("id"))
         salesperson.name = request.form["name"]
         salesperson.phone = request.form["phone"]
         salesperson.email = request.form["email"]
-        db.session.commit() 
 
-        flash("Cadastro atualizado com sucesso.")
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Novo Email em uso por outro cadastro."
+
+        flash(message)
         return redirect(url_for("sales_person_index"))
 
 
@@ -301,11 +347,16 @@ def sales_person_update():
 @app.route("/salesperson/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def sales_person_delete(id):
+    message="Cadastro excluído com sucesso."
     salesperson = SalesPerson.query.get(id)
     db.session.delete(salesperson)
-    db.session.commit()
+    try:
+        db.session.commit() 
+    except IntegrityError:
+        db.session.rollback()
+    message = "Não é possivel excluir esse registro pois está em uso."
 
-    flash("Cadastro excluído com sucesso.")
+    flash(message)
     return redirect(url_for("sales_person_index"))
 
 
@@ -317,8 +368,9 @@ def sales_person_delete(id):
 @app.route("/partners/insert", methods = ["POST"])
 @login_required
 def partner_insert():
-
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    message = "Novo cadastro incluído com sucesso"
     if request.method == "POST":
         name  = request.form["name"]
         contact_name = request.form["contact_name"]
@@ -327,13 +379,19 @@ def partner_insert():
         tax_id = request.form["tax_id"]
         partner_type_id = request.form["partner_type_id"]
 
-        partner = Partner(name, contact_name, contact_phone, contact_email, tax_id, partner_type_id)
-        db.session.add(partner)
-        db.session.commit()
-
-        flash("Novo cadastro incluído com sucesso")
+        if Partner.query.filter_by(name = name).first():
+            message = "Já existe um parceiro no cadastro com esse nome"
+        elif Partner.query.filter_by(contact_email = contact_email).first():
+            message = "Já existe um parceiro no cadastro com este email de contato"
+        elif Partner.query.filter_by(tax_id = tax_id).first():
+            message = "Já existe um parceiro no cadastro com esse CNPJ"
+        else:
+            partner = Partner(name, contact_name, contact_phone, contact_email, tax_id, partner_type_id)
+            db.session.add(partner)
+            db.session.commit()
+            
+        flash(message)
         return redirect(url_for("partner_index"))
-
 
 #Read
 @app.route("/partners")
@@ -349,6 +407,8 @@ def partner_index():
 @login_required
 def partner_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
         partner = Partner.query.get(request.form.get("id"))
         partner.name = request.form["name"]
@@ -357,9 +417,14 @@ def partner_update():
         partner.contact_email = request.form["contact_email"]
         partner.tax_id =  request.form["tax_id"]
         partner.partner_type_id =  request.form["partner_type_id"]
-        db.session.commit() 
 
-        flash("Cadastro atualizado com sucesso.")
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Dados incorretos. CNPJ, Email ou Nome em uso por outro cadastro."
+        
+        flash(message)
         return redirect(url_for("partner_index"))
 
 
@@ -367,12 +432,18 @@ def partner_update():
 @app.route("/partners/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def partner_delete(id):
+    message="Cadastro excluído com sucesso."
     partner = Partner.query.get(id)
     db.session.delete(partner)
-    db.session.commit()
+    try:
+        db.session.commit() 
+    except IntegrityError:
+        db.session.rollback()
+    message = "Não é possivel excluir esse registro pois está em uso."
 
-    flash("Cadastro excluído com sucesso.")
+    flash(message)
     return redirect(url_for("partner_index"))
+
 
 
 """ _________________________________________________________________________________________________
