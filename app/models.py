@@ -293,9 +293,9 @@ def get_states():
 
 def get_customer_types():
     customer_types = [
-        [1,"Lead/Prospect"], 
-        [2, "Cliente Ativo"], 
-        [3, "Cliente Vip"],
+        [0,"Lead/Prospect"], 
+        [1, "Cliente Ativo"], 
+        [2, "Cliente Vip"],
 
     ]
     return customer_types

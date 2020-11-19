@@ -5,12 +5,14 @@ from re import S
 from urllib.parse import urlparse, urljoin
 from flask import render_template, send_from_directory, session, request, redirect, url_for, flash, abort
 from flask_login import login_required, login_user, logout_user
+from sqlalchemy.sql.functions import current_time
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_activity_status, get_partner_types, get_service_ticket_status
 from app.models import get_customer_types, get_states, get_partner_types, get_activity_types
 from sqlalchemy import func, desc
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
 
 
@@ -27,7 +29,7 @@ def favicon():
 @login_required
 def index():
     """Pagina Inicial."""
-    return render_template("pages/index.html", page="Sistema eVND")
+    return render_template("pages/index.html", page="Sistema eVND", current_time=datetime.utcnow())
 
 
 @app.route("/menu/<name>")
@@ -79,6 +81,8 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
+            session["user_name"] = user.short_name
+            session["user_role"] = user.role.name
             flash("Usuario {} logado com sucesso no eVND.".format(form.email.data))
             login_user(user, form.remember_me.data)
 
@@ -153,7 +157,8 @@ def customers_insert():
 def customers_index():
     """Lista os objetos persistidos no DB"""
     customer_set = Customer.query.all()
-    return render_template("pages/customers.html", page="Clientes", customers = customer_set, states=get_states(), customer_types=get_customer_types())
+    return render_template("pages/customers.html", page="Clientes", customers = customer_set, \
+                            states=get_states(), customer_types=get_customer_types(), current_time=datetime.utcnow())
 
 
 #Update
@@ -240,7 +245,7 @@ def products_insert():
 def products_index():
     """Lista os objetos persistidos no DB"""
     product_set = Product.query.all()
-    return render_template("pages/products.html", page="Produtos", products = product_set)
+    return render_template("pages/products.html", page="Produtos", products = product_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -320,7 +325,7 @@ def sales_person_insert():
 def sales_person_index():
     """Lista os objetos persistidos no DB"""
     salesperson_set = SalesPerson.query.all()
-    return render_template("pages/sales-team.html", page="Equipe", salesteam=salesperson_set)
+    return render_template("pages/sales-team.html", page="Equipe", salesteam=salesperson_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -402,7 +407,7 @@ def partners_insert():
 def partners_index():
     """Lista os objetos persistidos no DB"""
     partner_set = Partner.query.all()
-    return render_template("pages/partners.html", page="Parceiros", partner_types=get_partner_types(), partners = partner_set)
+    return render_template("pages/partners.html", page="Parceiros", partner_types=get_partner_types(), partners = partner_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -487,7 +492,7 @@ def service_ticket_index():
                             customers_list=get_customers_list(), products_list=get_products_list(), \
                             activities_list=get_activities_list(), partners_list=get_partners_list(), \
                             service_ticket_status=get_service_ticket_status(), partner_types=get_partner_types(),
-                            activity_types=get_activity_types())
+                            activity_types=get_activity_types(), current_time=datetime.utcnow())
 
 
 #Update
@@ -523,7 +528,7 @@ def service_ticket_delete(id):
     return redirect(url_for("service_ticket_index"))
 
 #Read
-@app.route("/service-tickets/rpt")
+@app.route("/reports")
 @login_required
 def service_ticket_rpt():
     """Lista os objetos persistidos no DB"""
@@ -531,7 +536,7 @@ def service_ticket_rpt():
     serviceticket_set = db.session.query(ServiceTicket.id_customer, func.count(ServiceTicket.id).label("Total")).\
                         group_by(ServiceTicket.id_customer).order_by(desc("Total")).all()
     return render_template("pages/reports.html", page="Relatórios", servicetickets = serviceticket_set, \
-                            customers_list=get_customers_list())
+                            customers_list=get_customers_list(), current_time=datetime.utcnow())
 
 """ _________________________________________________________________________________________________
     Cadastro Atividades do CRM  - CRUD
@@ -570,7 +575,7 @@ def activities_index():
     return render_template("pages/activities.html", page="Atividades", activities = activity_set, \
                             activity_status=get_activity_status(), activity_types=get_activity_types(), \
                             customers_list=get_customers_list(), salesperson_list=get_salesperson_list(), \
-                            products_list=get_products_list())
+                            products_list=get_products_list(),current_time=datetime.utcnow())
 
 
 #Update
