@@ -311,7 +311,7 @@ def get_partner_types():
 def get_service_ticket_status():
     service_ticket_status = [
         [0, "Criado"], 
-        [1, "Atrasada"], 
+        [1, "Atrasado"], 
         [2, "Pendente de Parceiro"],
         [3, "Pendente do Cliente"],
         [4, "Executando"],
@@ -332,7 +332,7 @@ def get_activity_types():
 def get_activity_status():
     activity_status = [
         [0, "Agendada"], 
-        [1, "Atrasada"], 
+        [1, "Atrasado"], 
         [2, "Pendente de Parceiro"],
         [3, "Pendente do Cliente"],
         [4, "Executando"],

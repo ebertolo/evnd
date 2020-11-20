@@ -26,10 +26,10 @@
             <ul class="nav navbar-nav">
                 <li><a href="/customers">Clientes</a></li>
                 <li><a href="/products">Produtos</a></li>
-                <li><a href="/activities">Atividades <span class="pop badge badge-dark">1</span></a></li>
+                <li><a href="/activities">Atividades <span class="pop badge badge-dark">{{session.get('count_activities')}}</span></a></li>
                 <li><a href="/sales-person">Equipe</a></li>
                 <li><a href="/partners">Parceiros</a></li>
-                <li><a href="/service-tickets">Chamados <span class="pop badge badge-light">4</span></a></li>
+                <li><a href="/service-tickets">Chamados <span class="pop badge badge-light">{{session.get('count_service_tickets')}}</span></a></li>
                 <li><a href="/reports">Relatorios</a></li>
             {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout')}}">Logout</a></li>

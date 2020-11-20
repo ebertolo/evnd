@@ -81,8 +81,12 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
-            session["user_name"] = user.short_name
-            session["user_role"] = user.role.name
+
+            # Salva os dados gerais na sessão do usuário
+            update_user_info(user.short_name, user.id_role)
+            update_count_activities()
+            update_count_service_tickets()
+
             flash("Usuario {} logado com sucesso no eVND.".format(form.email.data))
             login_user(user, form.remember_me.data)
 
@@ -204,7 +208,7 @@ def customers_delete(id):
         db.session.commit() 
     except IntegrityError:
         db.session.rollback()
-    message = "Não é possivel excluir esse registro pois está em uso."
+        message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("customers_index"))
@@ -286,7 +290,7 @@ def products_delete(id):
         db.session.commit() 
     except IntegrityError:
         db.session.rollback()
-    message = "Não é possivel excluir esse registro pois está em uso."
+        message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("products_index"))
@@ -309,7 +313,7 @@ def sales_person_insert():
         email = request.form["email"]
 
         if SalesPerson.query.filter_by(email = email).first():
-            message = "Já existe um parceiro no cadastro com esse email"
+            message = "Já existe um membro de equipe no cadastro com esse email"
         else:
             salesperson = SalesPerson(name, phone, email)
             db.session.add(salesperson)
@@ -362,7 +366,7 @@ def sales_person_delete(id):
         db.session.commit() 
     except IntegrityError:
         db.session.rollback()
-    message = "Não é possivel excluir esse registro pois está em uso."
+        message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("sales_person_index"))
@@ -447,7 +451,7 @@ def partners_delete(id):
         db.session.commit() 
     except IntegrityError:
         db.session.rollback()
-    message = "Não é possivel excluir esse registro pois está em uso."
+        message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("partners_index"))
@@ -477,6 +481,9 @@ def service_ticket_insert():
                           request_date, done_date, description)
         db.session.add(serviceticket)
         db.session.commit()
+
+        #Atualiza badge de número de chamados pendentes no menu principal
+        update_count_service_tickets()
 
         flash("Novo cadastro incluído com sucesso")
         return redirect(url_for("service_ticket_index"))
@@ -511,6 +518,9 @@ def service_ticket_update():
         serviceticket.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         serviceticket.description = request.form["description"]
         db.session.commit() 
+
+        #Atualiza badge de número de chamados pendentes no menu principal
+        update_count_service_tickets()
 
         flash("Cadastro atualizado com sucesso.")
         return redirect(url_for("service_ticket_index"))
@@ -562,6 +572,9 @@ def activities_insert():
         db.session.add(activity)
         db.session.commit()
 
+        #Atualiza badge de atividades pendentes no menu principal
+        update_count_activities()
+
         flash("Novo cadastro incluído com sucesso")
         return redirect(url_for("activities_index"))
 
@@ -594,6 +607,9 @@ def activities_update():
         activity.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         activity.description = request.form["description"]
         db.session.commit() 
+
+        #Atualiza badge de atividades pendentes no menu principal
+        update_count_activities()
 
         flash("Cadastro atualizado com sucesso.")
         return redirect(url_for("activities_index"))
@@ -629,3 +645,31 @@ def get_partners_list():
 def get_activities_list():
     activities = [[0, "--", "--"]] + [[activity.id, str(activity.id).zfill(4) + " - " + activity.sales_person.name] for activity in Activity.query.all()]
     return activities
+
+def update_count_service_tickets():
+    """Armazena em variável de sessão o número de chamados que estejam pendentes, com os seguintes status:
+        0 - Criado
+        1 - Atrasado
+        2 - Pendente de Parceiro
+        3 - Pendente de Cliente
+    """
+    count_service_tickets = db.session.execute('select count(id) as c from Service_Ticket where id_status < 4').scalar()
+    session["count_service_tickets"] = count_service_tickets if count_service_tickets > 0 else ""
+    return 
+
+def update_count_activities():
+    """Armazena na variável de sessão o número de atividades que estejam pendentes, com os seguintes status:
+        0 - Criado
+        1 - Atrasado
+        2 - Pendente de Parceiro
+        3 - Pendente de Cliente
+    """
+    count_activities = db.session.execute('select count(id) as c from Activity where id_status < 4').scalar()
+    session["count_activities"] =  count_activities if count_activities > 0 else ""
+    return
+
+def update_user_info(name, id):
+    """Armazena Nome e Perfil de Acesso do Usuario"""
+    session["user_name"] = name
+    session["user_role"] = id
+    return
