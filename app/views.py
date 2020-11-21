@@ -202,13 +202,24 @@ def customers_update():
 @login_required
 def customers_delete(id):
     message="Cadastro excluído com sucesso."
-    customer = Customer.query.get(id)
-    db.session.delete(customer)
-    try:
-        db.session.commit() 
-    except IntegrityError:
-        db.session.rollback()
-        message = "Não é possivel excluir esse registro pois está em uso."
+    allow_delete = True
+
+    if Activity.query.filter_by(id_customer=id).count() > 0:
+        message = "Não é possível excluir clientes com atividades cadastradas."
+        allow_delete= False
+    
+    if ServiceTicket.query.filter_by(id_customer=id).count() > 0:
+        message = "Não é possível excluir clientes com chamados cadastradas."
+        allow_delete= False
+
+    if allow_delete:
+        customer = Customer.query.get(id)
+        db.session.delete(customer)
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("customers_index"))
@@ -223,9 +234,11 @@ def customers_delete(id):
 @login_required
 def products_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
-    message="Novo cadastro incluído com sucesso"
+    message="Novo cadastro incluído com sucesso."
     if request.method == "POST":
         code =  request.form["code"]
+        id_partner = request.form["id_partner"]
+        id_partner_support = request.form["id_partner_support"]
         name = request.form["name"]
         info = request.form["info"]
         html_link = request.form["html_link"]
@@ -233,9 +246,13 @@ def products_insert():
         group_name_long = request.form["group_name_long"]
 
         if Product.query.filter_by(name = name).first():
-            message = "Já existe um produto no cadastro com esse nome"
+            message = "Já existe um produto no cadastro com esse nome."
+        elif Product.query.filter_by(code = code).first():
+            message = "Já existe um produto no cadastro com esse codigo."
+        elif int(id_partner) == 0:
+            message = "É necessario selecionar um fornecedor."
         else:
-            product = Product(code, name, info, html_link, group_name_short, group_name_long)
+            product = Product(code, id_partner, id_partner_support, name, info, html_link, group_name_short, group_name_long)
             db.session.add(product)
             db.session.commit()
 
@@ -249,7 +266,7 @@ def products_insert():
 def products_index():
     """Lista os objetos persistidos no DB"""
     product_set = Product.query.all()
-    return render_template("pages/products.html", page="Produtos", products = product_set, current_time=datetime.utcnow())
+    return render_template("pages/products.html", page="Produtos", products = product_set, suppliers_list=get_suppliers_list(), supporters_list=get_supporters_list(), current_time=datetime.utcnow())
 
 
 #Update
@@ -262,6 +279,8 @@ def products_update():
     if request.method == "POST":
         product = Product.query.get(request.form.get("id"))
         product.code = request.form["code"]
+        product.id_partner = request.form["id_partner"]
+        product.id_partner_support = request.form["id_partner_support"]
         product.name = request.form["name"]
         product.info = request.form["info"]
         product.html_link = request.form["html_link"]
@@ -283,14 +302,24 @@ def products_update():
 @login_required
 def products_delete(id):
     message = "Cadastro excluído com successo."
-    product = Product.query.get(id)
-    db.session.delete(product)
+    allow_delete = True
 
-    try:
-        db.session.commit() 
-    except IntegrityError:
-        db.session.rollback()
-        message = "Não é possivel excluir esse registro pois está em uso."
+    if Activity.query.filter_by(id_product=id).count() > 0:
+        message = "Não é possível excluir produtos com atividades cadastradas."
+        allow_delete= False
+    
+    if ServiceTicket.query.filter_by(id_product=id).count() > 0:
+        message = "Não é possível excluir produtos com chamados cadastradas."
+        allow_delete= False
+
+    if allow_delete:
+        product = Product.query.get(id)
+        db.session.delete(product)
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("products_index"))
@@ -360,14 +389,21 @@ def sales_person_update():
 @login_required
 def sales_person_delete(id):
     message="Cadastro excluído com sucesso."
-    salesperson = SalesPerson.query.get(id)
-    db.session.delete(salesperson)
-    try:
-        db.session.commit() 
-    except IntegrityError:
-        db.session.rollback()
-        message = "Não é possivel excluir esse registro pois está em uso."
+    allow_delete = True
 
+    if Activity.query.filter_by(id_sales_person=id).count() > 0:
+        message = "Não é possível excluir membro da equipe com atividades cadastradas."
+        allow_delete= False
+    
+    if allow_delete:
+        salesperson = SalesPerson.query.get(id)
+        db.session.delete(salesperson)
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Não é possivel excluir esse registro pois está em uso."
+  
     flash(message)
     return redirect(url_for("sales_person_index"))
 
@@ -445,13 +481,28 @@ def partners_update():
 @login_required
 def partners_delete(id):
     message="Cadastro excluído com sucesso."
-    partner = Partner.query.get(id)
-    db.session.delete(partner)
-    try:
-        db.session.commit() 
-    except IntegrityError:
-        db.session.rollback()
-        message = "Não é possivel excluir esse registro pois está em uso."
+    allow_delete = True
+
+    if ServiceTicket.query.filter_by(id_partner=id).count() > 0:
+        message = "Não é possível excluir parceiros referenciados em chamados cadastradas."
+        allow_delete= False
+    
+    if Product.query.filter_by(id_partner=id).count() > 0:
+        message = "Não é possível excluir parceiros referenciados como Fornecedor de um Produto."
+        allow_delete= False
+    
+    if Product.query.filter_by(id_partner_support=id).count() > 0:
+        message = "Não é possível excluir parceiros referenciados como Assistência Técnica de um Produto."
+        allow_delete= False
+
+    if allow_delete:
+        partner = Partner.query.get(id)
+        db.session.delete(partner)
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Não é possivel excluir esse registro pois está em uso."
 
     flash(message)
     return redirect(url_for("partners_index"))
@@ -530,9 +581,13 @@ def service_ticket_update():
 @app.route("/service-tickets/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def service_ticket_delete(id):
+
     serviceticket = ServiceTicket.query.get(id)
     db.session.delete(serviceticket)
     db.session.commit()
+
+    #Atualiza badge de número de chamados pendentes no menu principal
+    update_count_service_tickets()
     
     flash("Cadastro excluído com sucesso.")
     return redirect(url_for("service_ticket_index"))
@@ -619,11 +674,22 @@ def activities_update():
 @app.route("/activities/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def activities_delete(id):
-    activity = Activity.query.get(id)
-    db.session.delete(activity)
-    db.session.commit()
+    message="Cadastro excluído com sucesso."
+    allow_delete = True
 
-    flash("Cadastro excluído com sucesso.")
+    if ServiceTicket.query.filter_by(id_partner=id).count() > 0:
+        message = "Não é possível excluir atividades referenciadas em chamados cadastrados."
+        allow_delete= False
+
+    if allow_delete:
+        activity = Activity.query.get(id)
+        db.session.delete(activity)
+        db.session.commit()
+
+        #Atualiza badge de atividades pendentes no menu principal
+        update_count_activities()
+
+    flash(message)
     return redirect(url_for("activities_index"))
 
 def get_salesperson_list():
@@ -640,6 +706,14 @@ def get_products_list():
 
 def get_partners_list():
     partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.all()]
+    return partners
+
+def get_suppliers_list():
+    partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.filter_by(partner_type_id=1).all()]
+    return partners
+
+def get_supporters_list():
+    partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.filter_by(partner_type_id=0).all()]
     return partners
 
 def get_activities_list():

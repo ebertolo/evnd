@@ -1,0 +1,80 @@
+.logo {
+    height: 100px;
+    margin-top: -40px;
+    width: auto;
+    margin-left: -17px;
+}
+
+ul.errors {
+    list-style-type: none;
+    padding: 0;
+    color: red;
+}
+
+table.rpt {
+    table-layout: auto !important;
+    width: 70% !important;
+}
+
+.fa-clock {
+    color: #56f200 !important;
+}
+
+.fa-user-times {
+    color: #d40f1e !important;
+}
+
+.fa-users-cog {
+    color: #d40f1e !important;
+}
+
+.fa-thumbs-down {
+    color: #d40f1e !important;
+}
+
+.fa-check-circle {
+    color: #0075f2 !important;
+}
+
+.fa-cog {
+    color: #048a81 !important;
+}
+
+.navbar-inverse {
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 1 px;
+    margin-bottom: 0px;
+}
+
+li.evnd {
+    font-weight: bold;
+}
+
+a.evnd {
+    font-weight: bold !important;
+}
+
+a.evnd-icon {
+    font-size: larger;
+    margin-top: 6% !important;
+}
+
+div.evnd {
+    margin-top: 27% !important;
+    background-color: #0057b4 !important;
+}
+
+div.evnd-date {
+    margin-top: 23% !important;
+    background-color: #050609 !important;
+    color: #048a81;
+}
+
+div.navbar-inverse {
+    background-color: #050609 !important;
+}
+
+span.pop {
+    background-color: #d40f1e;
+}

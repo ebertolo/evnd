@@ -62,9 +62,27 @@
                                             </div>
 
                                             <div class="form-group">
+                                                <label>Fornecedor:</label>
+                                                <select name="id_partner">
+                                                    {% for item in suppliers_list %}
+                                                        <option value="{{item[0]}}" {% if item[0] == row.id_partner %} selected {% endif %}>{{item[1]}}</option>                                           
+                                                    {% endfor %}      
+                                                </select>
+                                            </div>
+                                        
+                                            <div class="form-group">
                                                 <label>Nome Produto:</label>
                                                 <input type="hidden"  name="id" value="{{row.id}}" required="1">
                                                 <input type="text" class="form-control" name="name" value="{{row.name}}">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Assistência Técnica:</label>
+                                                <select name="id_partner_support">
+                                                    {% for item in supporters_list %}
+                                                        <option value="{{item[0]}}" {% if item[0] == row.id_partner_support %} selected {% endif %}>{{item[1]}}</option>                                           
+                                                    {% endfor %}      
+                                                </select>
                                             </div>
 
                                             <div class="form-group">
@@ -119,8 +137,26 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label>Fornecedor:</label>
+                                    <select name="id_partner">
+                                        {% for item in suppliers_list %}
+                                            <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                        {% endfor %}      
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
                                     <label>Nome Produto:</label>
                                     <input type="text" class="form-control" name="name" required="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Assistência Técnica:</label>
+                                    <select name="id_partner_support">
+                                        {% for item in supporters_list %}
+                                            <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                        {% endfor %}      
+                                    </select>
                                 </div>
 
                                 <div class="form-group">

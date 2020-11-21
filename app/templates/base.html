@@ -8,7 +8,6 @@
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
-        
         <div class="navbar-header">
             <button type="button" class="navbar-toggle"
             data-toggle="collapse" data-target=".navbar-collapse">
@@ -18,29 +17,22 @@
                 <span class="icon-bar"></span>
             </button> 
             <a data-toggle="tooltip" data-placement="top" class="navbar-brand" href="/">
-                <img class="navbar-brand img-responsive"  title="Pagina Inicial" style="height:80px; margin-top:-25px; width: auto; margin-left:0px" src="{{ url_for('static', filename='logo_small.png') }}">
+                <img class="logo navbar-brand img-responsive"  title="Pagina Inicial"  src="{{ url_for('static', filename='logo_small.png') }}">
             </a>
         </div>
         
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="/customers">Clientes</a></li>
-                <li><a href="/products">Produtos</a></li>
-                <li><a href="/activities">Atividades <span class="pop badge badge-dark">{{session.get('count_activities')}}</span></a></li>
-                <li><a href="/sales-person">Equipe</a></li>
-                <li><a href="/partners">Parceiros</a></li>
-                <li><a href="/service-tickets">Chamados <span class="pop badge badge-light">{{session.get('count_service_tickets')}}</span></a></li>
-                <li><a href="/reports">Relatorios</a></li>
-            {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('logout')}}">Logout</a></li>
-            {% else %}
-                <li><a href="{{ url_for('login')}}">Login</a></li>
-            {% endif %}
-            {%if current_time %}
-                <li><div class="evnd-date badge badge-dark"> {{moment(current_time).format('DD/MM/YYYY')}} </div></li>
-            {%endif%}
-                <li><div class="evnd badge badge-dark">{{session.get('user_name')}}</div></a>
-            
+                <li><a class="evnd" href="/customers">Clientes</a></li>
+                <li class="evnd"><a href="/products">Produtos</a></li>
+                <li class="evnd"><a href="/activities">Atividades <span title="Atividades pendentes" class="pop badge badge-dark">{{session.get('count_activities')}}</span></a></li>
+                <li class="evnd"><a href="/sales-person">Equipe</a></li>
+                <li class="evnd"><a href="/partners">Parceiros</a></li>
+                <li class="evnd"><a href="/service-tickets">Chamados <span title="Chamados pendentes" class="pop badge badge-light">{{session.get('count_service_tickets')}}</span></a></li>
+                <li class="evnd"><a href="/reports">Relatorios</a></li>
+                <!-- <li><a href="#">{%if current_time %}<div class="evnd-date badge badge-dark"> {{moment(current_time).format('DD/MM/YYYY')}} </div>{%endif%}</a></li>-->
+                <li><div title="Usuário logado" class="evnd badge badge-dark">{{session.get('user_name')}}</div></li>
+                <li><a class="evnd-icon" href="{{ url_for('logout')}}"><i title="Logout" class="fas fa-sign-out-alt"></i></a></li>
             </ul>
         </div>
     </div> 

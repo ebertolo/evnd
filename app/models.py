@@ -119,16 +119,21 @@ class Product(db.Model):
 
     __tablename__ = "Product"
     id = db.Column(db.Integer, primary_key=True)
-    code =  db.Column(db.String(100)) #Codigo do Fornecedor
+    id_partner = db.Column(db.Integer, db.ForeignKey("Partner.id"))
+    id_partner_support =  db.Column(db.Integer, nullable=True) # Relacionamento Fraco 
+    code =  db.Column(db.String(100), unique=True) #Codigo de Produto do Fornecedor ou SKU
     name = db.Column(db.String(100), unique=True, index=True)
     info = db.Column(db.String(500))  #Descricao do Produto
     html_link = db.Column(db.String(250), nullable=True)
     group_name_short = db.Column(db.String(30))
     group_name_long = db.Column(db.String(100))
-
-    def __init__(self, code, name, info, html_link, group_name_short, group_name_long):
+    partner = db.relationship("Partner", back_populates="products")
+    
+    def __init__(self, code, id_partner, id_partner_support, name, info, html_link, group_name_short, group_name_long):
         """Método Construtor da Classe"""
         self.code = code 
+        self.id_partner = id_partner
+        self.id_partner_support = id_partner_support
         self.name = name
         self.info = info
         self.html_link = html_link
@@ -172,6 +177,7 @@ class Partner(db.Model):
     contact_email = db.Column(db.String(100), unique=True)
     tax_id = db.Column(db.String(20), unique=True)
     partner_type_id = db.Column(db.Integer) # TODO: Adicionar relacionamento como chave extrangeira no futuro
+    products = db.relationship("Product", back_populates="partner")
 
     def __init__(self, name, contact_name, contact_phone, contact_email, tax_id, partner_type_id):
         """Método Construtor"""
