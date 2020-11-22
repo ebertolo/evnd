@@ -24,7 +24,7 @@ bootstrap = Bootstrap(app)
 moment = Moment(app)
 
 # Carrega ORM para linkar classes python com as tabelas do banco, cria as tabelas caso não existam
-db = SQLAlchemy(app)
+db = SQLAlchemy(app, session_options={"autoflush": False})
 db.create_all()
 
 # Esse import deve ser o ultimo comando do arquivo para evitar referencia circular

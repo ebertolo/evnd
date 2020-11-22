@@ -33,7 +33,16 @@
                         <tr>
                             <td>{{row.id}}</td>
                             <td>{{row.name}}</td>
-                            <td>{{partner_types[row.partner_type_id][1] or "--"}}</td>
+                            <td>
+                                {% if row.partner_type_id == 0 %}    
+                                    <i class="fas fa-briefcase-medical"></i>
+                                {% elif row.partner_type_id == 1 %}
+                                    <i class="fas fa-truck-moving"></i>
+                                {% elif row.partner_type_id == 2 %}
+                                    <i class="fas fa-medal"></i>
+                                {% endif %}
+                                {{partner_types[row.partner_type_id][1] or "--"}}
+                            </td>
                             <td>{{row.contact_name}}</td>
                             <td>{{row.contact_phone}}</td>
                             <td>{{row.contact_email}}</td>

@@ -34,7 +34,16 @@
                         <tr>
                             <td>{{row.id}}</td>
                             <td>{{row.name}}</td>
-                            <td>{{customer_types[row.customer_type_id][1] or "--"}}</td>
+                            <td>
+                                {% if row.customer_type_id == 0 %}    
+                                    <i class="fas fa-search-dollar"></i>
+                                {% elif row.customer_type_id == 1 %}
+                                    <i class="fas fa-id-card"></i>
+                                {% elif row.customer_type_id == 2 %}
+                                    <i class="fas fa-medal"></i>
+                                {% endif %}
+                                {{customer_types[row.customer_type_id][1] or "--"}}
+                            </td>
                             <td>{{row.state}}</td>
                             <td>{{row.contact_name}}</td>
                             <td>{{row.contact_phone}}</td>

@@ -108,6 +108,7 @@ def logout():
 
 
 def is_safe_url(target):
+    """Valida se url é segura, evita redirecionamento malicioso"""
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ("http", "https") and \
@@ -141,10 +142,13 @@ def customers_insert():
 
         if Customer.query.filter_by(name = name).first():
             message = "Já existe um cliente no cadastro com esse nome."
+
         elif Customer.query.filter_by(contact_email = contact_email).first():
             message = "Já existe um cliente no cadastro com este email de contato."
+
         elif Customer.query.filter_by(tax_id = tax_id).first():
             message = "Já existe um cliente no cadastro com esse CNPJ"
+
         else:
             customer = Customer(tax_id, customer_type_id, name, contact_name, contact_phone, contact_email, \
                 address_line1, address_line2, number, postal_code, city, state)
@@ -161,7 +165,7 @@ def customers_insert():
 def customers_index():
     """Lista os objetos persistidos no DB"""
     customer_set = Customer.query.all()
-    return render_template("pages/customers.html", page="Clientes", customers = customer_set, \
+    return render_template("pages/customers.html", page="Empresas Clientes", customers = customer_set, \
                             states=get_states(), customer_types=get_customer_types(), current_time=datetime.utcnow())
 
 
@@ -187,11 +191,24 @@ def customers_update():
         customer.city = request.form["city"]
         customer.state = request.form["state"]
 
-        try:
-            db.session.commit() 
-        except IntegrityError:
+        if Customer.query.filter_by(name = customer.name).filter(Customer.id != customer.id).first():
+            message = "Já existe um cliente no cadastro com esse nome."
             db.session.rollback()
-            message = "Dados incorretos, novo nome, email ou CNPJ em uso por outro cadastro." 
+
+        elif Customer.query.filter_by(contact_email = customer.contact_email).filter(Customer.id != customer.id).first():
+            message = "Já existe um cliente no cadastro com este email de contato."
+            db.session.rollback()
+
+        elif Customer.query.filter_by(tax_id = customer.tax_id).filter(Customer.id != customer.id).first():
+            message = "Já existe um cliente no cadastro com esse CNPJ"
+            db.session.rollback()
+
+        else:
+            try:
+                db.session.commit() 
+            except IntegrityError:
+                db.session.rollback()
+                message = "Dados incorretos, novo nome, email ou CNPJ em uso por outro cadastro." 
 
         flash(message)
         return redirect(url_for("customers_index"))
@@ -201,18 +218,16 @@ def customers_update():
 @app.route("/customers/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def customers_delete(id):
-    message="Cadastro excluído com sucesso."
-    allow_delete = True
+    """Exclui item selecionado"""
 
+    message="Cadastro excluído com sucesso."    
     if Activity.query.filter_by(id_customer=id).count() > 0:
         message = "Não é possível excluir clientes com atividades cadastradas."
-        allow_delete= False
     
-    if ServiceTicket.query.filter_by(id_customer=id).count() > 0:
+    elif ServiceTicket.query.filter_by(id_customer=id).count() > 0:
         message = "Não é possível excluir clientes com chamados cadastradas."
-        allow_delete= False
-
-    if allow_delete:
+        
+    else:
         customer = Customer.query.get(id)
         db.session.delete(customer)
         try:
@@ -245,12 +260,15 @@ def products_insert():
         group_name_short = request.form["group_name_short"]
         group_name_long = request.form["group_name_long"]
 
-        if Product.query.filter_by(name = name).first():
-            message = "Já existe um produto no cadastro com esse nome."
-        elif Product.query.filter_by(code = code).first():
+        if Product.query.filter_by(code = code).first():
             message = "Já existe um produto no cadastro com esse codigo."
+
         elif int(id_partner) == 0:
             message = "É necessario selecionar um fornecedor."
+        
+        elif Product.query.filter_by(name = name).first():
+            message = "Já existe um produto no cadastro com esse nome."
+
         else:
             product = Product(code, id_partner, id_partner_support, name, info, html_link, group_name_short, group_name_long)
             db.session.add(product)
@@ -266,7 +284,7 @@ def products_insert():
 def products_index():
     """Lista os objetos persistidos no DB"""
     product_set = Product.query.all()
-    return render_template("pages/products.html", page="Produtos", products = product_set, suppliers_list=get_suppliers_list(), supporters_list=get_supporters_list(), current_time=datetime.utcnow())
+    return render_template("pages/products.html", page="Catálogo de Produtos", products = product_set, suppliers_list=get_suppliers_list(), supporters_list=get_supporters_list(), current_time=datetime.utcnow())
 
 
 #Update
@@ -287,11 +305,25 @@ def products_update():
         product.group_name_short = request.form["group_name_short"]
         product.group_name_long =  request.form["group_name_long"]
 
-        try:
-            db.session.commit() 
-        except IntegrityError:
+
+        if Product.query.filter_by(code = product.code).filter(Product.id != product.id).first():
+            message = "Já existe um produto no cadastro com esse codigo."
             db.session.rollback()
-            message = "Novo nome em uso por outro cadastro." 
+        
+        elif int(product.id_partner) == 0:
+            message = "É necessario selecionar um fornecedor."
+            db.session.rollback()
+        
+        elif Product.query.filter_by(name = product.name).filter(Product.id != product.id).first():
+            message = "Já existe um produto no cadastro com esse nome."
+            db.session.rollback()
+
+        else:
+            try:
+                db.session.commit() 
+            except IntegrityError:
+                db.session.rollback()
+                message = "Novo nome em uso por outro cadastro." 
 
         flash(message)
         return redirect(url_for("products_index"))
@@ -301,18 +333,16 @@ def products_update():
 @app.route("/products/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def products_delete(id):
+    """Exclui item selecionado"""
+    
     message = "Cadastro excluído com successo."
-    allow_delete = True
-
     if Activity.query.filter_by(id_product=id).count() > 0:
         message = "Não é possível excluir produtos com atividades cadastradas."
-        allow_delete= False
-    
-    if ServiceTicket.query.filter_by(id_product=id).count() > 0:
-        message = "Não é possível excluir produtos com chamados cadastradas."
-        allow_delete= False
 
-    if allow_delete:
+    elif ServiceTicket.query.filter_by(id_product=id).count() > 0:
+        message = "Não é possível excluir produtos com chamados cadastradas."
+
+    else:
         product = Product.query.get(id)
         db.session.delete(product)
         try:
@@ -342,7 +372,11 @@ def sales_person_insert():
         email = request.form["email"]
 
         if SalesPerson.query.filter_by(email = email).first():
-            message = "Já existe um membro de equipe no cadastro com esse email"
+            message = "Já existe um membro de equipe no cadastro com esse email."
+
+        if SalesPerson.query.filter_by(name = name).first():
+            message = "Já existe um membro de equipe no cadastro com esse nome."
+
         else:
             salesperson = SalesPerson(name, phone, email)
             db.session.add(salesperson)
@@ -358,7 +392,7 @@ def sales_person_insert():
 def sales_person_index():
     """Lista os objetos persistidos no DB"""
     salesperson_set = SalesPerson.query.all()
-    return render_template("pages/sales-team.html", page="Equipe", salesteam=salesperson_set, current_time=datetime.utcnow())
+    return render_template("pages/sales-team.html", page="Equipe de Vendas", salesteam=salesperson_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -374,11 +408,20 @@ def sales_person_update():
         salesperson.phone = request.form["phone"]
         salesperson.email = request.form["email"]
 
-        try:
-            db.session.commit() 
-        except IntegrityError:
+        if SalesPerson.query.filter_by(email = salesperson.email).filter(SalesPerson.id != salesperson.id).first():
+            message = "Já existe um membro de equipe no cadastro com esse email."
             db.session.rollback()
-            message = "Novo Email em uso por outro cadastro."
+
+        if SalesPerson.query.filter_by(name = salesperson.name).filter(SalesPerson.id != salesperson.id).first():
+            message = "Já existe um membro de equipe no cadastro com esse nome."
+            db.session.rollback()
+
+        else:
+            try:
+                db.session.commit() 
+            except IntegrityError:
+                db.session.rollback()
+                message = "Novo Email em uso por outro cadastro."
 
         flash(message)
         return redirect(url_for("sales_person_index"))
@@ -388,14 +431,13 @@ def sales_person_update():
 @app.route("/salesperson/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def sales_person_delete(id):
-    message="Cadastro excluído com sucesso."
-    allow_delete = True
+    """Exclui item selecionado"""
 
+    message="Cadastro excluído com sucesso."
     if Activity.query.filter_by(id_sales_person=id).count() > 0:
         message = "Não é possível excluir membro da equipe com atividades cadastradas."
-        allow_delete= False
     
-    if allow_delete:
+    else:
         salesperson = SalesPerson.query.get(id)
         db.session.delete(salesperson)
         try:
@@ -429,10 +471,13 @@ def partners_insert():
 
         if Partner.query.filter_by(name = name).first():
             message = "Já existe um parceiro no cadastro com esse nome"
+
         elif Partner.query.filter_by(contact_email = contact_email).first():
             message = "Já existe um parceiro no cadastro com este email de contato"
+
         elif Partner.query.filter_by(tax_id = tax_id).first():
             message = "Já existe um parceiro no cadastro com esse CNPJ"
+
         else:
             partner = Partner(name, contact_name, contact_phone, contact_email, tax_id, partner_type_id)
             db.session.add(partner)
@@ -447,7 +492,7 @@ def partners_insert():
 def partners_index():
     """Lista os objetos persistidos no DB"""
     partner_set = Partner.query.all()
-    return render_template("pages/partners.html", page="Parceiros", partner_types=get_partner_types(), partners = partner_set, current_time=datetime.utcnow())
+    return render_template("pages/partners.html", page="Parceiros de Negócios", partner_types=get_partner_types(), partners = partner_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -466,11 +511,25 @@ def partners_update():
         partner.tax_id =  request.form["tax_id"]
         partner.partner_type_id =  request.form["partner_type_id"]
 
-        try:
-            db.session.commit() 
-        except IntegrityError:
+
+        if Partner.query.filter_by(name = partner.name).filter(Partner.id != partner.id).first():
+            message = "Já existe um parceiro no cadastro com esse nome"
             db.session.rollback()
-            message = "Dados incorretos. CNPJ, Email ou Nome em uso por outro cadastro."
+
+        elif Partner.query.filter_by(contact_email = partner.contact_email).filter(Partner.id != partner.id).first():
+            message = "Já existe um parceiro no cadastro com este email de contato"
+            db.session.rollback()
+
+        elif Partner.query.filter_by(tax_id = partner.tax_id).filter(Partner.id != partner.id).first():
+            message = "Já existe um parceiro no cadastro com esse CNPJ"        
+            db.session.rollback()
+
+        else:
+            try:
+                db.session.commit() 
+            except IntegrityError:
+                db.session.rollback()
+                message = "Dados incorretos. CNPJ, Email ou Nome em uso por outro cadastro."
         
         flash(message)
         return redirect(url_for("partners_index"))
@@ -481,21 +540,17 @@ def partners_update():
 @login_required
 def partners_delete(id):
     message="Cadastro excluído com sucesso."
-    allow_delete = True
 
     if ServiceTicket.query.filter_by(id_partner=id).count() > 0:
         message = "Não é possível excluir parceiros referenciados em chamados cadastradas."
-        allow_delete= False
     
-    if Product.query.filter_by(id_partner=id).count() > 0:
+    elif Product.query.filter_by(id_partner=id).count() > 0:
         message = "Não é possível excluir parceiros referenciados como Fornecedor de um Produto."
-        allow_delete= False
     
-    if Product.query.filter_by(id_partner_support=id).count() > 0:
+    elif Product.query.filter_by(id_partner_support=id).count() > 0:
         message = "Não é possível excluir parceiros referenciados como Assistência Técnica de um Produto."
-        allow_delete= False
 
-    if allow_delete:
+    else:
         partner = Partner.query.get(id)
         db.session.delete(partner)
         try:
@@ -516,8 +571,9 @@ def partners_delete(id):
 @app.route("/service-tickets/insert", methods = ["POST"])
 @login_required
 def service_ticket_insert():
-
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    message = "Novo cadastro incluído com sucesso"
     if request.method == "POST":
         id_status = request.form["id_status"]
         id_customer = request.form["id_customer"]
@@ -527,16 +583,20 @@ def service_ticket_insert():
         request_date = convert_to_date(request.form["request_date"])
         done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         description = request.form["description"]
+ 
+        if int(id_customer) == 0:
+            message = "É necessário selecionar um Cliente."
 
-        serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
-                          request_date, done_date, description)
-        db.session.add(serviceticket)
-        db.session.commit()
+        else:
+            serviceticket = ServiceTicket(id_status, id_customer, id_product, id_activity, id_partner, \
+                            request_date, done_date, description)
+            db.session.add(serviceticket)
+            db.session.commit()
 
         #Atualiza badge de número de chamados pendentes no menu principal
         update_count_service_tickets()
 
-        flash("Novo cadastro incluído com sucesso")
+        flash(message)
         return redirect(url_for("service_ticket_index"))
 
 
@@ -546,7 +606,7 @@ def service_ticket_insert():
 def service_ticket_index():
     """Lista os objetos persistidos no DB"""
     serviceticket_set = ServiceTicket.query.all()
-    return render_template("pages/service-tickets.html", page="Chamados", servicetickets = serviceticket_set, \
+    return render_template("pages/service-tickets.html", page="Chamados de Clientes", servicetickets = serviceticket_set, \
                             customers_list=get_customers_list(), products_list=get_products_list(), \
                             activities_list=get_activities_list(), partners_list=get_partners_list(), \
                             service_ticket_status=get_service_ticket_status(), partner_types=get_partner_types(),
@@ -558,6 +618,8 @@ def service_ticket_index():
 @login_required
 def service_ticket_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+    
+    message="Cadastro atualizado com sucesso."
     if request.method == "POST":
         serviceticket = ServiceTicket.query.get(request.form.get("id"))
         serviceticket.id_status = request.form["id_status"]
@@ -568,12 +630,17 @@ def service_ticket_update():
         serviceticket.request_date = convert_to_date(request.form["request_date"])
         serviceticket.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         serviceticket.description = request.form["description"]
-        db.session.commit() 
+        
+        if serviceticket.id_customer == 0:
+            message = "É necessário selecionar um Cliente."
+            db.session.rollback()
+        
+        else:
+            db.session.commit() 
+            #Atualiza badge de número de chamados pendentes no menu principal
+            update_count_service_tickets()
 
-        #Atualiza badge de número de chamados pendentes no menu principal
-        update_count_service_tickets()
-
-        flash("Cadastro atualizado com sucesso.")
+        flash(message)
         return redirect(url_for("service_ticket_index"))
 
 
@@ -581,6 +648,8 @@ def service_ticket_update():
 @app.route("/service-tickets/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def service_ticket_delete(id):
+    """Exclui registro selecionado"""
+
 
     serviceticket = ServiceTicket.query.get(id)
     db.session.delete(serviceticket)
@@ -610,8 +679,9 @@ def service_ticket_rpt():
 @app.route("/activities/insert", methods = ["POST"])
 @login_required
 def activities_insert():
-
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    message = "Novo cadastro incluído com sucesso"
     if request.method == "POST":
         id_status = request.form["id_status"]
         id_activity_type = request.form["id_activity_type"]
@@ -622,15 +692,22 @@ def activities_insert():
         done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         description = request.form["description"]
 
-        activity = Activity(id_status, id_activity_type, id_customer, id_sales_person, id_product, \
-                          planned_date, done_date, description)
-        db.session.add(activity)
-        db.session.commit()
+        if int(id_customer) == 0:
+            message = "É necessário selecionar um cliente."
 
-        #Atualiza badge de atividades pendentes no menu principal
-        update_count_activities()
+        elif int(id_sales_person) == 0:
+            message = "É necessário selecionar um vendedor responsável pela atividade."
 
-        flash("Novo cadastro incluído com sucesso")
+        else:
+            activity = Activity(id_status, id_activity_type, id_customer, id_sales_person, id_product, \
+                            planned_date, done_date, description)
+            db.session.add(activity)
+            db.session.commit()
+
+            #Atualiza badge de atividades pendentes no menu principal
+            update_count_activities()
+
+        flash(message)
         return redirect(url_for("activities_index"))
 
 
@@ -640,7 +717,7 @@ def activities_insert():
 def activities_index():
     """Lista os objetos persistidos no DB"""
     activity_set = Activity.query.all()
-    return render_template("pages/activities.html", page="Atividades", activities = activity_set, \
+    return render_template("pages/activities.html", page="Atividades da Equipe de Vendas", activities = activity_set, \
                             activity_status=get_activity_status(), activity_types=get_activity_types(), \
                             customers_list=get_customers_list(), salesperson_list=get_salesperson_list(), \
                             products_list=get_products_list(),current_time=datetime.utcnow())
@@ -651,6 +728,8 @@ def activities_index():
 @login_required
 def activities_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
         activity = Activity.query.get(request.form.get("id"))
         activity.id_status = request.form["id_status"]
@@ -661,12 +740,21 @@ def activities_update():
         activity.planned_date = convert_to_date(request.form["planned_date"])
         activity.done_date = convert_to_date(request.form["done_date"]) if request.form["done_date"] else None
         activity.description = request.form["description"]
-        db.session.commit() 
+        
+        if int(activity.id_customer) == 0:
+            message = "É necessário selecionar um cliente."
+            db.session.rollback()
 
-        #Atualiza badge de atividades pendentes no menu principal
-        update_count_activities()
+        elif int(activity.id_sales_person) == 0:
+            message = "É necessário selecionar um vendedor responsável pela atividade."
+            db.session.rollback()
 
-        flash("Cadastro atualizado com sucesso.")
+        else:
+            db.session.commit() 
+            #Atualiza badge de atividades pendentes no menu principal
+            update_count_activities()
+
+        flash(message)
         return redirect(url_for("activities_index"))
 
 
@@ -674,14 +762,13 @@ def activities_update():
 @app.route("/activities/delete/<id>/", methods = ["GET", "POST"])
 @login_required
 def activities_delete(id):
+    """Exclui registro selecionado"""
+    
     message="Cadastro excluído com sucesso."
-    allow_delete = True
-
-    if ServiceTicket.query.filter_by(id_partner=id).count() > 0:
+    if ServiceTicket.query.filter_by(id_activity=id).count() > 0:
         message = "Não é possível excluir atividades referenciadas em chamados cadastrados."
-        allow_delete= False
 
-    if allow_delete:
+    else:
         activity = Activity.query.get(id)
         db.session.delete(activity)
         db.session.commit()
@@ -697,7 +784,7 @@ def get_salesperson_list():
     return salesteam
 
 def get_customers_list():
-    customers = [[0, "--"]] + [[customer.id, customer.name, customer.state] for customer in Customer.query.all()]
+    customers = [[0, "--"]] + [[customer.id, customer.name] for customer in Customer.query.all()]
     return customers
 
 def get_products_list():
@@ -705,11 +792,11 @@ def get_products_list():
     return products
 
 def get_partners_list():
-    partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.all()]
+    partners = [[0, "--"]] + [[partner.id, partner.name] for partner in Partner.query.all()]
     return partners
 
 def get_suppliers_list():
-    partners = [[0, "--", "--"]] + [[partner.id, partner.name, partner.partner_type_id] for partner in Partner.query.filter_by(partner_type_id=1).all()]
+    partners = [[0, "--"]] + [[partner.id, partner.name] for partner in Partner.query.filter_by(partner_type_id=1).all()]
     return partners
 
 def get_supporters_list():

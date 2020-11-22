@@ -49,9 +49,27 @@
                             {% endif %}
                                 {{service_ticket_status[row.id_status][1] or "--"}}
                             </td>
-                            <td>{{customers_list[row.id_customer][1] or "--"}}</td>
-                            <td>{{partners_list[row.id_partner][1] or "--"}}</td>
-                            <td>{{activities_list[row.id_activity][1] or "--"}}</td>
+                            <td>
+                                {%for c in customers_list %}
+                                    {% if c[0] == row.id_customer %}
+                                        {{c[1]}}
+                                    {% endif %}
+                                {%endfor%}
+                            </td>
+                            <td>
+                                {%for p in customers_list %}
+                                    {% if p[0] == row.id_partner %}
+                                        {{p[1]}}
+                                    {% endif %}
+                                {%endfor%}
+                            </td>
+                            <td>
+                                {%for a in activities_list %}
+                                    {% if a[0] == row.id_activity %}
+                                        {{a[1]}}
+                                    {% endif %}
+                                {%endfor%}
+                            </td>
                             <td>{{row.request_date.strftime("%d/%m/%Y")}}</td>
                             <td>
                                 {%if row.done_date%}
