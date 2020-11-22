@@ -7,6 +7,7 @@ from flask_fontawesome import FontAwesome
 from flask import Flask
 from flask_login import LoginManager
 from flask_datepicker import datepicker 
+from flask_mail import Mail
 
 # Inicializa aplicação flask e carrega as configurações do arquivo setting.py
 app = Flask(__name__)
@@ -25,6 +26,7 @@ fa = FontAwesome(app)
 bootstrap = Bootstrap(app)
 datepicker(app)
 moment = Moment(app)
+mail = Mail(app)
 
 
 # Carrega ORM para linkar classes python com as tabelas do banco, cria as tabelas caso não existam
