@@ -169,6 +169,7 @@ def users_update():
         user.full_name = request.form["full_name"]
         user.email = request.form["email"]
         new_password = request.form["password"]
+
         if new_password:
             if len(new_password) < 6:
                 flash("A nova senha precisa ter pelo menos 6 caracteres.")
@@ -468,15 +469,19 @@ def sales_person_insert():
         name = request.form["name"]
         phone = request.form["phone"]
         email = request.form["email"]
+        id_user = request.form["id_user"]
 
         if SalesPerson.query.filter_by(email = email).first():
             message = "Já existe um membro de equipe no cadastro com esse email."
 
-        if SalesPerson.query.filter_by(name = name).first():
+        elif SalesPerson.query.filter_by(name = name).first():
             message = "Já existe um membro de equipe no cadastro com esse nome."
+ 
+        elif SalesPerson.query.filter_by(id_user = id_user).filter_by(id_user = id_user).first():
+            message = "Login de acesso em uso, selecionar outro login."
 
         else:
-            salesperson = SalesPerson(name, phone, email)
+            salesperson = SalesPerson(name, phone, email, id_user)
             db.session.add(salesperson)
             db.session.commit()
 
@@ -490,7 +495,7 @@ def sales_person_insert():
 def sales_person_index():
     """Lista os objetos persistidos no DB"""
     salesperson_set = SalesPerson.query.all()
-    return render_template("pages/sales-team.html", page="Equipe de Vendas", users=get_users_list(), salesteam=salesperson_set, current_time=datetime.utcnow())
+    return render_template("pages/sales-team.html", page="Equipe de Vendas", users_list=get_users_list(), salesteam=salesperson_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -505,13 +510,18 @@ def sales_person_update():
         salesperson.name = request.form["name"]
         salesperson.phone = request.form["phone"]
         salesperson.email = request.form["email"]
+        salesperson.id_user =  request.form["id_user"]
 
         if SalesPerson.query.filter_by(email = salesperson.email).filter(SalesPerson.id != salesperson.id).first():
             message = "Já existe um membro de equipe no cadastro com esse email."
             db.session.rollback()
 
-        if SalesPerson.query.filter_by(name = salesperson.name).filter(SalesPerson.id != salesperson.id).first():
+        elif SalesPerson.query.filter_by(name = salesperson.name).filter(SalesPerson.id != salesperson.id).first():
             message = "Já existe um membro de equipe no cadastro com esse nome."
+            db.session.rollback()
+
+        elif SalesPerson.query.filter_by(id_user = salesperson.id_user).filter(SalesPerson.id != salesperson.id).first():
+            message = "Login de acesso em uso, selecionar outro login."
             db.session.rollback()
 
         else:
@@ -773,7 +783,7 @@ def activities_insert():
     message = "Novo cadastro incluído com sucesso"
     if request.method == "POST":
         id_status = request.form["id_status"]
-        id_activity_type = request.form["id_activity_type"]
+        id_activity_type = request.form["id_activity_type"] 
         id_customer = request.form["id_customer"]
         id_sales_person = request.form["id_sales_person"]
         id_product = request.form["id_product"]
@@ -938,7 +948,7 @@ def rpt_activities_product():
 
 def get_users_list():
     """Seleciona apenas usuarios do Perfil Vendas"""
-    users = [[0, "--"]] + [[user.id, user.short_name + " - " + user.email] for user in User.query.filter_by(id_role=1).order_by().all()]
+    users = [[0, "--", "--"]] + [[user.id, user.short_name + " - " + user.email, user.email] for user in User.query.filter_by(id_role=2).order_by().all()]
     return users
 
 def get_salesperson_list():

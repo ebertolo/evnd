@@ -156,11 +156,12 @@ class SalesPerson(db.Model):
     activities =  db.relationship("Activity", back_populates="sales_person")
     id_user = db.Column(db.Integer, nullable=True) # Relacionamento Fraco com Tabela de Usuarios para gerenciar atividades do vendedor
     
-    def __init__(self, name, phone, email):
+    def __init__(self, name, phone, email, id_user):
         """Método Construtor da Classe"""
         self.name = name
         self.phone = phone 
         self.email = email
+        self.id_user = id_user
 
     def __repr__(self):
         """String padrão que descreve o objeto"""
@@ -336,11 +337,11 @@ def get_service_ticket_status():
 
 def get_activity_types():
     activity_types = [
-        ["0", "Telefonema"], 
-        ["1", "Reunião"], 
-        ["2", "Visita"],
-        ["3", "Oferta"],
-        ["4", "Email"],
+        [0, "Telefonema"], 
+        [1, "Reunião"], 
+        [2, "Visita"],
+        [3, "Oferta"],
+        [4, "Email"],
     ]
     return activity_types
 

@@ -24,7 +24,8 @@
                         <th>ID</th>
                         <th>Nome do Vendedor</th>
                         <th>Tefefone</th>
-                        <th>E-mail</th>
+                        <th>E-mail (Uso com clientes)</th>
+                        <th>E-mail (Login eVND)</th>
                         <th>Ação</th>
                     </tr>
  
@@ -33,7 +34,14 @@
                             <td>{{row.id}}</td>
                             <td>{{row.name}}</td>
                             <td>{{row.phone}}</td>
-                            <td>{{row.email}}</td>                       
+                            <td>{{row.email}}</td>
+                            <td>
+                                {%for u in users_list %}
+                                    {% if u[0] == row.id_user %}
+                                        {{u[2]}}
+                                    {% endif %}
+                                {%endfor%}
+                            </td>                       
                             <td>
                                 <a href="salesperson/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
                                 <a href="salesperson/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
@@ -65,6 +73,15 @@
                                             <div class="form-group">
                                                 <label>Email:</label>
                                                 <input type="email" class="form-control" name="email" value="{{row.email}}" required="1">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Login de Acesso:</label>
+                                                <select name="id_user">
+                                                    {% for item in users_list %}
+                                                        <option value="{{item[0]}}" {% if item[0] == row.id_user %} selected {% endif %}>{{item[1]}}</option>                                           
+                                                    {% endfor %}      
+                                                </select>
                                             </div>
 
                                             <div class="form-group">
@@ -106,6 +123,15 @@
                                 <div class="form-group">
                                     <label>Email:</label>
                                     <input type="email" class="form-control" name="email" required="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Login de Acesso:</label>
+                                    <select name="id_user">
+                                        {% for item in users_list %}
+                                            <option value="{{item[0]}}">{{item[1]}}</option>                                           
+                                        {% endfor %}      
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
