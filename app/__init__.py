@@ -5,7 +5,8 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_fontawesome import FontAwesome
 from flask import Flask
-from flask_login import LoginManager 
+from flask_login import LoginManager
+from flask_datepicker import datepicker 
 
 # Inicializa aplicação flask e carrega as configurações do arquivo setting.py
 app = Flask(__name__)
@@ -19,9 +20,12 @@ login_manager.login_message_category = "info"
 login_manager.init_app(app)
 
 # Carrega e linka as bibliotecas auxiliares ao app principal
+
 fa = FontAwesome(app)
 bootstrap = Bootstrap(app)
+datepicker(app)
 moment = Moment(app)
+
 
 # Carrega ORM para linkar classes python com as tabelas do banco, cria as tabelas caso não existam
 db = SQLAlchemy(app, session_options={"autoflush": False})

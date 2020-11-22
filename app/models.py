@@ -69,7 +69,7 @@ class User(UserMixin, db.Model):
         return User.query.get(int(user_id))
 
     def __repr__(self):
-        return "<User %r>" % self.short_name
+        return "<Usuario %r>" % self.short_name
 
 
 class Customer(db.Model):
@@ -111,7 +111,7 @@ class Customer(db.Model):
         
     def __repr__(self):
         """String padrão que descreve o objeto"""
-        return "<Customer %r>" % self.name
+        return "<Cliente %r>" % self.name
 
 
 class Product(db.Model):
@@ -142,7 +142,7 @@ class Product(db.Model):
 
     def __repr__(self):
         """String padrão que descreve o objeto"""
-        return "<Product %r>" % self.name
+        return "<Produto %r>" % self.name
 
 
 class SalesPerson(db.Model):
@@ -154,7 +154,8 @@ class SalesPerson(db.Model):
     phone = db.Column(db.String(15))
     email = db.Column(db.String(100), unique=True)
     activities =  db.relationship("Activity", back_populates="sales_person")
-
+    id_user = db.Column(db.Integer, nullable=True) # Relacionamento Fraco com Tabela de Usuarios para gerenciar atividades do vendedor
+    
     def __init__(self, name, phone, email):
         """Método Construtor da Classe"""
         self.name = name
@@ -163,7 +164,7 @@ class SalesPerson(db.Model):
 
     def __repr__(self):
         """String padrão que descreve o objeto"""
-        return "<SalesPerson %r>" % self.name
+        return "<Vendedor %r>" % self.name
 
 
 class Partner(db.Model):
@@ -190,7 +191,7 @@ class Partner(db.Model):
         
     def __repr__(self):
         """String padrão que descreve o objeto"""
-        return "<Partner %r>" % self.name
+        return "<Parceiro %r>" % self.name
 
 
 class ServiceTicket(db.Model):
@@ -220,7 +221,7 @@ class ServiceTicket(db.Model):
         self.description = description
                 
     def __repr__(self):
-        return "<ServiceTicket %r>" % str(self.id)
+        return "<Chamados %r>" % str(self.id)
 
 
 class Activity(db.Model):
@@ -251,7 +252,7 @@ class Activity(db.Model):
         self.description = description
 
     def __repr__(self):
-        return "<Activity %r>" % str(self.id)
+        return "<Atividade %r>" % str(self.id)
 
 
 
@@ -313,6 +314,14 @@ def get_partner_types():
         [2, "Representante"],
     ]
     return partner_types
+
+def get_role_types():
+    role_types = [
+        [1, "Admin"], 
+        [2, "Vendas"], 
+        [3, "Suporte"],
+    ]
+    return role_types
 
 def get_service_ticket_status():
     service_ticket_status = [

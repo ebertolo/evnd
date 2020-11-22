@@ -40,6 +40,11 @@ table.rpt {
     color: #048a81 !important;
 }
 
+.fa-sign-out-alt {
+    font-size: large;
+    margin-left: 0px;
+}
+
 .navbar-inverse {
     margin-left: 2px;
     margin-right: 2px;
@@ -61,12 +66,11 @@ a.evnd-icon {
 }
 
 div.evnd {
-    margin-top: 27% !important;
     background-color: #0057b4 !important;
 }
 
 div.evnd-date {
-    margin-top: 23% !important;
+    margin-top: 10% !important;
     background-color: #050609 !important;
     color: #048a81;
 }

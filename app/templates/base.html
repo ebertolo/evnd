@@ -23,15 +23,16 @@
         
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="evnd"><a href="/customers"><i class="fas fa-users"></i> Clientes</a></li>
-                <li class="evnd"><a href="/products"><i class="fas fa-tags"></i> Produtos</a></li>
-                <li class="evnd"><a href="/partners"><i class="fas fa-hands-helping"></i> Parceiros</a></li>
-                <li class="evnd"><a href="/sales-person"><i class="fas fa-user-secret"></i> Equipe</a></li>
-                <li class="evnd"><a href="/activities"><i class="fas fa-truck-monster"></i> Atividades <span title="Atividades pendentes" class="pop badge badge-dark">{{session.get('count_activities')}}</span></a></li>
-                <li class="evnd"><a href="/service-tickets"><i class="fas fa-ambulance"></i> Chamados <span title="Chamados pendentes" class="pop badge badge-light">{{session.get('count_service_tickets')}}</span></a></li>
-                <li class="evnd"><a href="/reports"><i class="fas fa-chart-line"></i> Relatórios</a></li>
-                <li class="evnd"><div title="Usuário logado" class="evnd badge badge-dark">{{session.get('user_name')}}</div></li>
-                <li><a class="evnd-icon" href="{{ url_for('logout')}}"><i title="Logout" class="fas fa-sign-out-alt"></i></a></li>
+                <li class="evnd"><a title="Clientes" href="/customers"><i class="fas fa-users"></i> Clientes</a></li>
+                <li class="evnd"><a title="Produtos" href="/products"><i class="fas fa-tags"></i> Produtos</a></li>
+                <li class="evnd"><a title="Parceiros" href="/partners"><i class="fas fa-hands-helping"></i> Parceiros</a></li>
+                <li class="evnd"><a title="Equipe" href="/sales-person"><i class="fas fa-user-ninja"></i> Equipe</a></li>
+                <li class="evnd"><a title="Atividades" href="/activities"><i class="fas fa-truck-monster"></i> Atividades <span title="Atividades pendentes" class="pop badge badge-dark">{{session.get('count_activities')}}</span></a></li>
+                <li class="evnd"><a title="Chamados" href="/service-tickets"><i class="fas fa-ambulance"></i> Chamados <span title="Chamados pendentes" class="pop badge badge-light">{{session.get('count_service_tickets')}}</span></a></li>
+                <li class="evnd"><a title="Relários" href="/reports/tickets/customer"><i class="fas fa-chart-line"></i> Relatórios</a></li>
+                <li class="evnd"><a title="Usuários" href="/users"><i class="fas fa-user-cog"></i></a></li>
+                <li class="evnd"><a href="#"><div title="Usuário logado" class="evnd badge badge-dark">{{session.get('user_name')}}</div></a></li>
+                <li class="evnd"><a href="{{ url_for('logout')}}"><i title="Logout" class="fas fa-sign-out-alt"></i></a></li>
             </ul>
         </div>
     </div> 
@@ -55,4 +56,6 @@
 {{ super() }}
 {{ moment.include_moment() }}
 {{ moment.locale('pt')}}
+{{ datepicker.loader(theme="base") }} {# to load jQuery-ui #}
+{{ datepicker.picker(id=".dp", dateFormat="d/m/yy") }}
 {% endblock %}

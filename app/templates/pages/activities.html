@@ -4,7 +4,7 @@
 
 {% block page_content %}
 <div class="page-header dark">
-    <h3>{{page}}</h3>
+    <h3><i class="fas fa-truck-monster"></i> {{page}}</h3>
 </div>
 
 <div class="container">
@@ -90,7 +90,7 @@
                             </td>
                         </tr>
  
-                <!-- Modal Editar Parceiro-->
+                <!-- Modal Editar Atividade-->
                 <div id="modaledit{{row.id}}" class="modal fade" role="dialog">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -147,12 +147,12 @@
 
                                     <div class="form-group">
                                         <label>Data Planejada:</label>
-                                        <input type="text" class="form-control" name="planned_date" value="{{row.planned_date.strftime("%d/%m/%Y")}}" required="1">
+                                        <input type="text" class="form-control dp" name="planned_date" value="{{row.planned_date.strftime("%d/%m/%Y")}}" required="1">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Data Conclusão:</label>
-                                        <input type="text" class="form-control" name="done_date" 
+                                        <input type="text" class="form-control dp" name="done_date" 
                                          value="{% if row.done_date %}{{row.done_date.strftime("%d/%m/%Y")}}{% endif %}">
                                     </div>
                         
@@ -236,12 +236,12 @@
 
                                     <div class="form-group">
                                         <label>Data Planejada:</label>
-                                        <input type="text" class="form-control" name="planned_date" required="1">
+                                        <input type="text" class="form-control dp" name="planned_date" required="1">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Data Conclusão:</label>
-                                        <input type="text" class="form-control" name="done_date">
+                                        <input type="text" class="form-control dp" name="done_date">
                                     </div>
                         
                                     <div class="form-group">

@@ -9,7 +9,7 @@ from sqlalchemy.sql.functions import current_time
 from werkzeug.exceptions import HTTPException
 from app import app, db, forms
 from app.models import Activity, Customer, Partner, Product, SalesPerson, ServiceTicket, User, convert_to_date, get_activity_status, get_partner_types, get_service_ticket_status
-from app.models import get_customer_types, get_states, get_partner_types, get_activity_types
+from app.models import get_customer_types, get_states, get_partner_types, get_activity_types, get_role_types
 from sqlalchemy import func, desc
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -113,6 +113,104 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ("http", "https") and \
            ref_url.netloc == test_url.netloc
+
+
+""" _________________________________________________________________________________________________
+    Cadastro Usuarios - CRUD
+""" 
+#Create
+@app.route("/users/insert", methods = ["POST"])
+@login_required
+def users_insert():
+    """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    message="Novo cadastro incluído com sucesso"
+    if request.method == "POST":
+        id_role = request.form["id_role"]
+        short_name = request.form["short_name"]
+        full_name = request.form["full_name"]
+        email = request.form["email"]
+        password = request.form["password"]
+
+        if User.query.filter_by(email = email).first():
+            message = "Já usuário no cadastro com esse email."
+
+        elif len(email) < 6:
+            message = "Senha deve ter pelo menos 6 caracteres."
+
+        else:
+            user = User(email, password, short_name, full_name, id_role)
+            db.session.add(user)
+            db.session.commit()
+
+        flash(message)
+        return redirect(url_for("users_index"))
+
+
+#Read
+@app.route("/users")
+@login_required
+def users_index():
+    """Lista os objetos persistidos no DB"""
+    users_set = User.query.all()
+    return render_template("pages/users.html", page="Usuários do eVND", role_types=get_role_types(), users=users_set, current_time=datetime.utcnow())
+
+
+#Update
+@app.route("/users/update", methods = ["GET", "POST"])
+@login_required
+def users_update():
+    """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    message = "Cadastro atualizado com sucesso."
+    if request.method == "POST":
+        user = User.query.get(request.form.get("id"))
+        user.short_name = request.form["short_name"]
+        user.full_name = request.form["full_name"]
+        user.email = request.form["email"]
+        new_password = request.form["password"]
+        if new_password:
+            if len(new_password) < 6:
+                flash("A nova senha precisa ter pelo menos 6 caracteres.")
+            else:
+                user.password = new_password
+        
+        if User.query.filter_by(email = user.email).filter(User.id != user.id).first():
+            message = "Já existe usuário no cadastro com esse email."
+            db.session.rollback()
+
+        else:
+            try:
+                db.session.commit() 
+            except IntegrityError:
+                db.session.rollback()
+                message = "Novo Email em uso por outro cadastro."
+
+        flash(message)
+        return redirect(url_for("users_index"))
+
+
+#Delete
+@app.route("/users/delete/<id>/", methods = ["GET", "POST"])
+@login_required
+def users_delete(id):
+    """Exclui item selecionado"""
+
+    message="Cadastro excluído com sucesso."
+    if 1 > 0:#Activity.query.filter_by(id_sales_person=id).count() > 0:
+        message = "Não é possível excluir membro da equipe com atividades cadastradas."
+    
+    else:
+        user = User.query.get(id)
+        db.session.delete(user)
+        try:
+            db.session.commit() 
+        except IntegrityError:
+            db.session.rollback()
+            message = "Não é possivel excluir esse registro pois está em uso."
+  
+    flash(message)
+    return redirect(url_for("users_index"))
 
 
 
@@ -392,7 +490,7 @@ def sales_person_insert():
 def sales_person_index():
     """Lista os objetos persistidos no DB"""
     salesperson_set = SalesPerson.query.all()
-    return render_template("pages/sales-team.html", page="Equipe de Vendas", salesteam=salesperson_set, current_time=datetime.utcnow())
+    return render_template("pages/sales-team.html", page="Equipe de Vendas", users=get_users_list(), salesteam=salesperson_set, current_time=datetime.utcnow())
 
 
 #Update
@@ -661,16 +759,7 @@ def service_ticket_delete(id):
     flash("Cadastro excluído com sucesso.")
     return redirect(url_for("service_ticket_index"))
 
-#Read
-@app.route("/reports")
-@login_required
-def service_ticket_rpt():
-    """Lista os objetos persistidos no DB"""
 
-    serviceticket_set = db.session.query(ServiceTicket.id_customer, func.count(ServiceTicket.id).label("Total")).\
-                        group_by(ServiceTicket.id_customer).order_by(desc("Total")).all()
-    return render_template("pages/reports.html", page="Relatórios", servicetickets = serviceticket_set, \
-                            customers_list=get_customers_list(), current_time=datetime.utcnow())
 
 """ _________________________________________________________________________________________________
     Cadastro Atividades do CRM  - CRUD
@@ -778,6 +867,79 @@ def activities_delete(id):
 
     flash(message)
     return redirect(url_for("activities_index"))
+
+
+""" _________________________________________________________________________________________________
+    Relatórios de Chamados
+""" 
+@app.route("/reports/tickets/customer")
+@login_required
+def rpt_tickets_customer():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(ServiceTicket.id_customer, func.count(ServiceTicket.id).label("Total")).\
+                        group_by(ServiceTicket.id_customer).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Clientes em Quantidade de Chamados", report_set = report_set, \
+                            report_list=get_customers_list(), report_type_name="Chamados", report_head_name="Cliente", current_time=datetime.utcnow())
+
+
+@app.route("/reports/tickets/partner")
+@login_required
+def rpt_tickets_partner():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(ServiceTicket.id_partner, func.count(ServiceTicket.id).label("Total")).filter(ServiceTicket.id_partner != 0).\
+                        group_by(ServiceTicket.id_partner).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Parceiros em Quantidade de Chamados", report_set = report_set, \
+                            report_list=get_partners_list(), report_type_name="Chamados", report_head_name="Parceiro", current_time=datetime.utcnow())
+
+
+@app.route("/reports/tickets/product")
+@login_required
+def rpt_tickets_product():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(ServiceTicket.id_product, func.count(ServiceTicket.id).label("Total")).filter(ServiceTicket.id_product != 0).\
+                        group_by(ServiceTicket.id_product).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Produtos em Quantidade de Chamados", report_set = report_set, \
+                            report_list=get_products_list(), report_type_name="Chamados", report_head_name="Produto", current_time=datetime.utcnow())
+
+
+
+""" _________________________________________________________________________________________________
+    Relatórios de Atividades
+""" 
+@app.route("/reports/activities/customer")
+@login_required
+def rpt_activities_customer():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(Activity.id_customer, func.count(Activity.id).label("Total")).\
+                        group_by(Activity.id_customer).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Clientes em Quantidade de Atividades", report_set = report_set, \
+                            report_list=get_customers_list(), report_type_name="Atividades", report_head_name="Cliente", current_time=datetime.utcnow())
+
+
+@app.route("/reports/activities/salesperson")
+@login_required
+def rpt_activities_salesperson():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(Activity.id_sales_person, func.count(Activity.id).label("Total")).\
+                        group_by(Activity.id_sales_person).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Vendedor em Quantidade de Atividades", report_set = report_set, \
+                            report_list=get_salesperson_list(), report_type_name="Atividades", report_head_name="Vendedor", current_time=datetime.utcnow())
+
+
+@app.route("/reports/activities/product")
+@login_required
+def rpt_activities_product():
+    """Lista os items do Relatorio agrupando por tipo e com count decrescente"""
+    report_set = db.session.query(Activity.id_product, func.count(Activity.id).label("Total")).filter(Activity.id_product != 0).\
+                        group_by(Activity.id_product).order_by(desc("Total")).all()
+    return render_template("pages/reports.html", page="Top Produdo em Quantidade de Atividades", report_set = report_set, \
+                            report_list=get_products_list(), report_type_name="Atividades", report_head_name="Produto", current_time=datetime.utcnow())
+
+
+def get_users_list():
+    """Seleciona apenas usuarios do Perfil Vendas"""
+    users = [[0, "--"]] + [[user.id, user.short_name + " - " + user.email] for user in User.query.filter_by(id_role=1).order_by().all()]
+    return users
 
 def get_salesperson_list():
     salesteam = [[0, "--"]]+ [[salesperson.id, salesperson.name] for salesperson in SalesPerson.query.all()]
