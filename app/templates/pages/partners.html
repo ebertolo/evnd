@@ -48,7 +48,9 @@
                             <td>{{row.contact_email}}</td>
                             <td>
                                 <a href="partners/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
+                            {% if session.get('user_role') != 2 %}
                                 <a href="partners/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
+                            {%endif%}
                             </td>
                         </tr>
  

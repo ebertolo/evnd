@@ -145,13 +145,12 @@
 
                                     <div class="form-group">
                                         <label>Data Criação:</label>
-                                        <input type="text" class="form-control" name="request_date" value="{{row.request_date.strftime("%d/%m/%Y")}}">
+                                        <input type="text" class="form-control dp" name="request_date" value="{{row.request_date.strftime("%d/%m/%Y")}}">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Data Conclusão:</label>
-                                        <input type="text" class="form-control" name="done_date" 
-                                        value="{% if row.done_date %}{{row.done_date.strftime("%d/%m/%Y")}}{% endif %}">
+                                        <input type="text" class="form-control dp" name="done_date" value="{% if row.done_date %}{{row.done_date.strftime("%d/%m/%Y")}}{% endif %}">
                                     </div>
                         
                                     <div class="form-group">
@@ -234,12 +233,12 @@
 
                                     <div class="form-group">
                                         <label>Data Criação:</label>
-                                        <input type="text" class="form-control" name="request_date" required="1">
+                                        <input type="text" class="form-control dp" name="request_date" required="1">
                                     </div>
 
                                     <div class="form-group">
                                         <label>Data Conclusão:</label>
-                                        <input type="text" class="form-control" name="done_date">
+                                        <input type="text" class="form-control dp" name="done_date">
                                     </div>
                         
                                     <div class="form-group">

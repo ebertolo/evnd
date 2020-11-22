@@ -10,12 +10,14 @@
 <div class="container">
 
     <div class="row">
+
+        {% if session.get('user_role') != 2 %}
         <div class="text-right">
             <button type="button"  class="btn btn-dark btn-sm" data-toggle="modal" data-toggle="tooltip" title="Cadastrar novo Membro Equipe de Vendas." data-target="#mymodal"> Novo Membro Equipe de Vendas <i class="fas fa-plus-circle fa-lg"></i></button>
             </br>
             </br>
         </div>
-    
+        {%endif%}
         
         <div class="col md-12">           
             <div class="p-1 table-responsive">
@@ -26,7 +28,9 @@
                         <th>Tefefone</th>
                         <th>E-mail (Uso com clientes)</th>
                         <th>E-mail (Login eVND)</th>
-                        <th>Ação</th>
+                        {% if session.get('user_role') != 2 %}
+                            <th>Ação</th>
+                        {%endif%}
                     </tr>
  
                     {% for row in salesteam %}
@@ -41,11 +45,13 @@
                                         {{u[2]}}
                                     {% endif %}
                                 {%endfor%}
-                            </td>                       
+                            </td>  
+                            {% if session.get('user_role') != 2 %}
                             <td>
                                 <a href="salesperson/update/{{row.id}}" class="btn btn-dark btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}"><i class="fas fa-pen-square fa-lg"></i></a>
                                 <a href="salesperson/delete/{{row.id}}" class="btn btn-dark btn-xs" onclick="return confirm('Tem certeza que deseja excluir?')"><i class="fas fa-trash-alt fa-lg"></i></a>
                             </td>
+                            {%endif%}
                         </tr>
  
                         <!-- Modal Editar Membro Equipe de Vendas-->

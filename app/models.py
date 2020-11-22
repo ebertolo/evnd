@@ -317,6 +317,7 @@ def get_partner_types():
     return partner_types
 
 def get_role_types():
+    # É importante manter os IDs na hora de criar os perfis, pois esse dado está fixo no sistema, principalmente na parte de Validação
     role_types = [
         [1, "Admin"], 
         [2, "Vendas"], 

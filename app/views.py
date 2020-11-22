@@ -83,7 +83,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
 
             # Salva os dados gerais na sessão do usuário
-            update_user_info(user.short_name, user.id_role)
+            update_user_info(user.id, user.short_name, user.id_role, )
             update_count_activities()
             update_count_service_tickets()
 
@@ -124,6 +124,11 @@ def is_safe_url(target):
 def users_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
 
+    #Valida acesso 
+    if int(session.get('user_role')) != 1:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
     message="Novo cadastro incluído com sucesso"
     if request.method == "POST":
         id_role = request.form["id_role"]
@@ -152,6 +157,12 @@ def users_insert():
 @login_required
 def users_index():
     """Lista os objetos persistidos no DB"""
+
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
     users_set = User.query.all()
     return render_template("pages/users.html", page="Usuários do eVND", role_types=get_role_types(), users=users_set, current_time=datetime.utcnow())
 
@@ -161,6 +172,12 @@ def users_index():
 @login_required
 def users_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
+
+    #Valida acesso 
+    if int(session.get('user_role')) != 1:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
 
     message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
@@ -196,6 +213,11 @@ def users_update():
 @login_required
 def users_delete(id):
     """Exclui item selecionado"""
+
+    #Valida acesso 
+    if int(session.get('user_role')) != 1:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
 
     message="Cadastro excluído com sucesso."
     if 1 > 0:#Activity.query.filter_by(id_sales_person=id).count() > 0:
@@ -319,6 +341,12 @@ def customers_update():
 def customers_delete(id):
     """Exclui item selecionado"""
 
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
+
     message="Cadastro excluído com sucesso."    
     if Activity.query.filter_by(id_customer=id).count() > 0:
         message = "Não é possível excluir clientes com atividades cadastradas."
@@ -434,6 +462,11 @@ def products_update():
 def products_delete(id):
     """Exclui item selecionado"""
     
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
     message = "Cadastro excluído com successo."
     if Activity.query.filter_by(id_product=id).count() > 0:
         message = "Não é possível excluir produtos com atividades cadastradas."
@@ -463,6 +496,11 @@ def products_delete(id):
 @login_required
 def sales_person_insert():
     """Lê form, instancia objeto e persiste no BD com SQLAlchemy"""
+
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
 
     message="Novo cadastro incluído com sucesso"
     if request.method == "POST":
@@ -504,6 +542,11 @@ def sales_person_index():
 def sales_person_update():
     """Atualiza um objeto carregado em momória e o persiste com SQLAlchemy"""
 
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
+
     message = "Cadastro atualizado com sucesso."
     if request.method == "POST":
         salesperson = SalesPerson.query.get(request.form.get("id"))
@@ -540,6 +583,11 @@ def sales_person_update():
 @login_required
 def sales_person_delete(id):
     """Exclui item selecionado"""
+
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
 
     message="Cadastro excluído com sucesso."
     if Activity.query.filter_by(id_sales_person=id).count() > 0:
@@ -648,6 +696,11 @@ def partners_update():
 @login_required
 def partners_delete(id):
     message="Cadastro excluído com sucesso."
+
+    #Valida acesso 
+    if int(session.get('user_role')) == 2:
+        flash("Acesso não permitido")
+        return redirect(url_for("index"))
 
     if ServiceTicket.query.filter_by(id_partner=id).count() > 0:
         message = "Não é possível excluir parceiros referenciados em chamados cadastradas."
@@ -815,7 +868,16 @@ def activities_insert():
 @login_required
 def activities_index():
     """Lista os objetos persistidos no DB"""
-    activity_set = Activity.query.all()
+    
+    #Valida acesso 
+    activity_set = None
+    if  session.get('user_role') == 2:
+        sales_person = SalesPerson.query.filter_by(id_user = session.get('user_id')).first()
+        activity_set = Activity.query.filter_by(id_sales_person=sales_person.id).all()
+    else:
+        activity_set = Activity.query.all()
+
+
     return render_template("pages/activities.html", page="Atividades da Equipe de Vendas", activities = activity_set, \
                             activity_status=get_activity_status(), activity_types=get_activity_types(), \
                             customers_list=get_customers_list(), salesperson_list=get_salesperson_list(), \
@@ -997,12 +1059,19 @@ def update_count_activities():
         2 - Pendente de Parceiro
         3 - Pendente de Cliente
     """
-    count_activities = db.session.execute('select count(id) as c from Activity where id_status < 4').scalar()
+    count_activities = 0
+    if  session.get('user_role') == 2:
+        sales_person = SalesPerson.query.filter_by(id_user = session.get('user_id')).first()
+        count_activities = db.session.execute('select count(id) as c from Activity where id_sales_person=' + str(sales_person.id) + ' and id_status < 4').scalar()
+    else:
+        count_activities = db.session.execute('select count(id) as c from Activity where id_status < 4').scalar()
+    
     session["count_activities"] =  count_activities if count_activities > 0 else ""
     return
 
-def update_user_info(name, id):
+def update_user_info(id, name, role_id):
     """Armazena Nome e Perfil de Acesso do Usuario"""
+    session["user_id"] = id
     session["user_name"] = name
-    session["user_role"] = id
+    session["user_role"] = role_id
     return
