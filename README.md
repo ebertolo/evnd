@@ -2,4 +2,11 @@
 
 Projeto de Conclusao de Curso
 
-Site EVND
+Tecnologias utilizadas:
+Flask
+Python
+SQLAlchemy
+Bootstrap
+Jquery
+
+
