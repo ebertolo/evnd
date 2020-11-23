@@ -220,8 +220,8 @@ def users_delete(id):
         return redirect(url_for("index"))
 
     message="Cadastro excluído com sucesso."
-    if 1 > 0:#Activity.query.filter_by(id_sales_person=id).count() > 0:
-        message = "Não é possível excluir membro da equipe com atividades cadastradas."
+    if  SalesPerson.query.filter_by(id_user=id).count() > 0:
+        message = "Não é possível excluir usuários utilizados pela equipe."
     
     else:
         user = User.query.get(id)
