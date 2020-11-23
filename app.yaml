@@ -1,0 +1,18 @@
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT run:app
+
+runtime_config:
+  python_version: 3
+
+# Arquivo de configuração para permitir deploy da aplicação 
+# no Google Cloud Plataform(GCP) de uma aplicação flask utilizando gunicorn como webserver
+# Template criado a partir do tutorial da GCP, link abaixo
+# https://cloud.google.com/appengine/docs/flexible/python/configuring-your-app-with-app-yaml
+# para essa demonstração estou utilizando uma vCPU + 2Gb de RAM em um disco de 10GB
+manual_scaling:
+  instances: 1
+resources:
+  cpu: 1
+  memory_gb: 2
+  disk_size_gb: 10
