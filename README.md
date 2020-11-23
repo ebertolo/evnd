@@ -3,10 +3,10 @@
 Projeto de Conclusao de Curso
 
 Tecnologias utilizadas:
-Flask
-Python
-SQLAlchemy
-Bootstrap
-Jquery
+- Flask
+- Python
+- SQLAlchemy
+- Bootstrap
+- Jquery
 
 
